@@ -2,29 +2,65 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>Download Notes</title>
+<title>Free Notes</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
   <h1>📘 Free Notes Download</h1>
+  <p>Semester & Subject wise notes</p>
 </header>
 
-<div class="box">
-  <h3>Financial Accounting</h3>
-  <a href="notes/accounting.pdf" class="btn" download>
-    📥 Download PDF
-  </a>
+<!-- SEARCH BOX -->
+<input type="text" id="searchBox" placeholder="🔍 Subject search karo..." onkeyup="searchNotes()">
+
+<!-- ================= SEMESTER 2 ================= -->
+<div class="semester">
+  <h2>🎓 B.Com 2nd Semester</h2>
+
+  <div class="box note">
+    <h3>Financial Accounting</h3>
+    <a href="notes/accounting.pdf" class="btn" download>📥 Download PDF</a>
+  </div>
+
+  <div class="box note">
+    <h3>Business Law</h3>
+    <a href="notes/law.pdf" class="btn" download>📥 Download PDF</a>
+  </div>
+
+  <div class="box note">
+    <h3>Business Economics</h3>
+    <a href="notes/economics.pdf" class="btn" download>📥 Download PDF</a>
+  </div>
 </div>
 
-<div class="box">
-  <h3>Business Law</h3>
-  <a href="notes/law.pdf" class="btn" download>
-    📥 Download PDF
-  </a>
+<!-- ================= SEMESTER 1 (Example) ================= -->
+<div class="semester">
+  <h2>🎓 B.Com 1st Semester</h2>
+
+  <div class="box note">
+    <h3>Business Organisation</h3>
+    <a href="notes/org.pdf" class="btn" download>📥 Download PDF</a>
+  </div>
 </div>
+
+<!-- SEARCH SCRIPT -->
+<script>
+function searchNotes() {
+  let input = document.getElementById("searchBox").value.toLowerCase();
+  let notes = document.getElementsByClassName("note");
+
+  for (let i = 0; i < notes.length; i++) {
+    let title = notes[i].getElementsByTagName("h3")[0].innerText.toLowerCase();
+    if (title.includes(input)) {
+      notes[i].style.display = "block";
+    } else {
+      notes[i].style.display = "none";
+    }
+  }
+}
+</script>
 
 </body>
 </html>
-
