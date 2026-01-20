@@ -25,4 +25,20 @@ header{
   padding:10px 20px;
   text-decoration:none;
   border-radius:8px;
+}.focus-search {
+  width: 60%;
+  display: block;
+  margin: 30px auto;
+  padding: 14px;
+  font-size: 16px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  transition: 0.3s;
 }
+
+.focus-search:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 10px rgba(0,123,255,0.5);
+  transform: scale(1.02);
+}
+
