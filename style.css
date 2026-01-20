@@ -20,7 +20,7 @@ header{
   padding:20px;
   border-radius:12px;
   box-shadow:0 4px 12px rgba(0,0,0,0.08);
-  max-width:900px;   /* desktop me limit */
+  max-width:900px; 
 }
 
 /* Button */
@@ -81,3 +81,5 @@ header{
     font-size:15px;
   }
 }
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
