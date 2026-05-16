@@ -125,6 +125,18 @@ textarea {
     width: 100%;
     box-sizing: border-box;
 }
+
+.save-voucher-btn {
+    background: #28a745;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 20px;
+    margin-top: 15px;
+}
+
+.save-voucher-btn:hover {
+    background: #218838;
+}
 </style>
 </head>
 
@@ -149,7 +161,6 @@ textarea {
                 <th>Price</th>
                 <th>Stock</th>
                 <th>Issue Qty</th>
-                <th>Issue</th>
                 <th>Receive Qty</th>
                 <th>Receive</th>
                 <th>Ledger</th>
@@ -167,6 +178,8 @@ textarea {
         <div class="left-section">
             <h2>Issue / Receive Narration</h2>
             <textarea id="narration" placeholder="Narration"></textarea>
+            <br>
+            <button class="save-voucher-btn" onclick="saveIssueVoucher()">Save Issue Voucher</button>
         </div>
         
         <div class="right-section">
@@ -241,9 +254,6 @@ function displayProducts(){
                 <input type="number" id="issue${index}" placeholder="Qty">
             </td>
             <td>
-                <button onclick="issueStock(${index})">Issue</button>
-            </td>
-            <td>
                 <input type="number" id="receive${index}" placeholder="Qty">
             </td>
             <td>
@@ -257,39 +267,50 @@ function displayProducts(){
     });
 }
 
-// Issue Stock
-function issueStock(index){
-    let issueQty = Number(document.getElementById(`issue${index}`).value);
+// Save Issue Voucher (Bulk Issue)
+function saveIssueVoucher(){
     let narration = document.getElementById("narration").value;
+    let anyIssue = false;
 
-    if(issueQty <= 0){
-        alert("Enter valid quantity");
-        return;
-    }
+    products.forEach((item, index) => {
+        let issueQty = Number(document.getElementById(`issue${index}`).value);
 
-    if(issueQty > products[index].Quantity){
-        alert("Not enough stock");
-        return;
-    }
+        if(issueQty > 0){
+            anyIssue = true;
 
-    // Reduce Stock
-    products[index].Quantity = Number(products[index].Quantity) - issueQty;
+            if(issueQty > item.Quantity){
+                alert(item.Product + " me stock kam hai");
+                return;
+            }
 
-    // History
-    if(!products[index].History){
-        products[index].History = [];
-    }
+            // Reduce Stock
+            item.Quantity -= issueQty;
 
-    products[index].History.push({
-        type: "Issue",
-        qty: issueQty,
-        narration: narration,
-        date: new Date().toLocaleString()
+            // Create History
+            if(!item.History){
+                item.History = [];
+            }
+
+            item.History.push({
+                type: "Issue",
+                qty: issueQty,
+                narration: narration,
+                date: new Date().toLocaleString()
+            });
+        }
     });
 
+    if(!anyIssue){
+        alert("Issue Qty Enter Karo");
+        return;
+    }
+
     localStorage.setItem("products", JSON.stringify(products));
-    alert("Stock Issued");
+    alert("Issue Voucher Saved");
     displayProducts();
+    
+    // Clear Narration and Inputs
+    document.getElementById("narration").value = "";
 }
 
 // Receive Stock
