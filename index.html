@@ -183,6 +183,17 @@ textarea {
 </div>
 
 <script>
+    function saveProducts(){
+
+    clearTimeout(window.saveTimer);
+
+    window.saveTimer = setTimeout(() => {
+
+       saveproducts();
+
+    }, 500);
+
+}
 // Product Data
 let products = JSON.parse(localStorage.getItem("products")) || [];
 
