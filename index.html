@@ -105,6 +105,21 @@ onkeyup="searchProduct()">
 <br><br>
 
 <!-- Excel Upload -->
+    <br><br>
+
+<input
+type="text"
+id="newProduct"
+placeholder="New Product Name">
+
+<input
+type="number"
+id="newQty"
+placeholder="Opening Stock">
+
+<button onclick="addProduct()">
+Add Item
+</button>
 
 <input
 type="file"
@@ -743,7 +758,79 @@ function monthlyReport(){
 
     reportWindow.document.write(html);
 }
+function addProduct(){
 
+    let productName =
+    document.getElementById(
+    "newProduct"
+    ).value;
+
+    let qty =
+    Number(
+    document.getElementById(
+    "newQty"
+    ).value
+    );
+
+    if(productName === ""){
+
+        alert("Enter Product Name");
+
+        return;
+    }
+
+    if(qty <= 0){
+
+        alert("Enter Quantity");
+
+        return;
+    }
+
+    // Create Product
+
+    products.push({
+
+        Product: productName,
+
+        Price: 0,
+
+        Quantity: qty,
+
+        History:[
+
+            {
+                type:"Received",
+
+                qty: qty,
+
+                narration:"New Item Added",
+
+                date:new Date().toLocaleString()
+            }
+
+        ]
+
+    });
+
+    localStorage.setItem(
+    "products",
+    JSON.stringify(products)
+    );
+
+    alert("New Item Added");
+
+    displayProducts();
+
+    // Clear Inputs
+
+    document.getElementById(
+    "newProduct"
+    ).value = "";
+
+    document.getElementById(
+    "newQty"
+    ).value = "";
+}
 
 // Search Product
 
