@@ -163,12 +163,12 @@ textarea {
     </center>
 
     <div class="bottom-container">
-        
+
         <div class="left-section">
             <h2>Issue / Receive Narration</h2>
             <textarea id="narration" placeholder="Narration" onkeyup="checkNarrationForStock()"></textarea>
         </div>
-        
+
         <div class="right-section">
             <h3>Create New Item</h3>
             <div class="add-item-inputs">
@@ -258,16 +258,13 @@ function displayProducts(){
     });
 }
 
-// नया फ़ंक्शन: Narration चेक करके बची हुई Quantity को ऑटो-फ़िल करना
 function checkNarrationForStock() {
     let narrationText = document.getElementById("narration").value.toLowerCase().trim();
-    
-    // अगर नरेशन में 'xprown' लिखा गया है
+
     if (narrationText === "xprown") {
         products.forEach((item, index) => {
             let issueInput = document.getElementById(`issue${index}`);
             if (issueInput) {
-                // जितना स्टॉक है, उतना पूरा Issue Qty वाले बॉक्स में डाल दो
                 issueInput.value = item.Quantity;
             }
         });
@@ -411,7 +408,7 @@ function deleteEntry(productIndex, historyIndex){
     displayProducts();
 }
 
-// Monthly Report
+// Monthly Report - FIXED: Sirf wahi items jinka stock is month gaya hai
 function monthlyReport(){
     let reportWindow = window.open("", "", "width=1000,height=600");
     let html = `
@@ -427,13 +424,15 @@ function monthlyReport(){
     </style>
     </head>
     <body>
-    <h2>Monthly Stock Issue Report</h2>
+    <h2>Monthly Stock Issue Report - ${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</h2>
     <table>
     <tr>
         <th>Product</th>
         <th>Total Issued</th>
     </tr>
     `;
+
+    let hasIssueThisMonth = false;
 
     products.forEach(product => {
         let totalIssue = 0;
@@ -450,13 +449,25 @@ function monthlyReport(){
                 }
             });
         }
+
+        if(totalIssue > 0){
+            hasIssueThisMonth = true;
+            html += `
+            <tr>
+                <td>${product.Product}</td>
+                <td>${totalIssue}</td>
+            </tr>
+            `;
+        }
+    });
+
+    if(!hasIssueThisMonth){
         html += `
         <tr>
-            <td>${product.Product}</td>
-            <td>${totalIssue}</td>
+            <td colspan="2">No items issued this month</td>
         </tr>
         `;
-    });
+    }
 
     html += `</table></body></html>`;
     reportWindow.document.write(html);
