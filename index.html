@@ -125,18 +125,6 @@ textarea {
     width: 100%;
     box-sizing: border-box;
 }
-
-.save-voucher-btn {
-    background: #28a745;
-    font-size: 16px;
-    font-weight: bold;
-    padding: 10px 20px;
-    margin-top: 15px;
-}
-
-.save-voucher-btn:hover {
-    background: #218838;
-}
 </style>
 </head>
 
@@ -161,6 +149,7 @@ textarea {
                 <th>Price</th>
                 <th>Stock</th>
                 <th>Issue Qty</th>
+                <th>Issue</th>
                 <th>Receive Qty</th>
                 <th>Receive</th>
                 <th>Ledger</th>
@@ -177,9 +166,7 @@ textarea {
         
         <div class="left-section">
             <h2>Issue / Receive Narration</h2>
-            <textarea id="narration" placeholder="Narration"></textarea>
-            <br>
-            <button class="save-voucher-btn" onclick="saveIssueVoucher()">Save Issue Voucher</button>
+            <textarea id="narration" placeholder="Narration" onkeyup="checkNarrationForStock()"></textarea>
         </div>
         
         <div class="right-section">
@@ -217,13 +204,13 @@ document.getElementById("excelFile").addEventListener("change", function(e){
 
         // Create Products
         products = excelData.map(row => ({
-            Product: row.product || row.Particulars || "",
+            Product: row.product || row.Particulars || row.Item || "",
             Price: 0,
-            Quantity: Number(row.stock || row.Quantity) || 0,
+            Quantity: Number(row.stock || row.Quantity || row.Qty) || 0,
             History:[
                 {
                     type: "Received",
-                    qty: Number(row.stock || row.Quantity) || 0,
+                    qty: Number(row.stock || row.Quantity || row.Qty) || 0,
                     narration: "Opening Stock",
                     date: new Date().toLocaleString()
                 }
@@ -235,6 +222,7 @@ document.getElementById("excelFile").addEventListener("change", function(e){
 
         // Refresh Table
         displayProducts();
+        alert(products.length + " Items imported successfully from Excel!");
     };
     reader.readAsArrayBuffer(file);
 });
@@ -254,6 +242,9 @@ function displayProducts(){
                 <input type="number" id="issue${index}" placeholder="Qty">
             </td>
             <td>
+                <button onclick="issueStock(${index})">Issue</button>
+            </td>
+            <td>
                 <input type="number" id="receive${index}" placeholder="Qty">
             </td>
             <td>
@@ -267,50 +258,55 @@ function displayProducts(){
     });
 }
 
-// Save Issue Voucher (Bulk Issue)
-function saveIssueVoucher(){
+// नया फ़ंक्शन: Narration चेक करके बची हुई Quantity को ऑटो-फ़िल करना
+function checkNarrationForStock() {
+    let narrationText = document.getElementById("narration").value.toLowerCase().trim();
+    
+    // अगर नरेशन में 'xprown' लिखा गया है
+    if (narrationText === "xprown") {
+        products.forEach((item, index) => {
+            let issueInput = document.getElementById(`issue${index}`);
+            if (issueInput) {
+                // जितना स्टॉक है, उतना पूरा Issue Qty वाले बॉक्स में डाल दो
+                issueInput.value = item.Quantity;
+            }
+        });
+    }
+}
+
+// Issue Stock
+function issueStock(index){
+    let issueQty = Number(document.getElementById(`issue${index}`).value);
     let narration = document.getElementById("narration").value;
-    let anyIssue = false;
 
-    products.forEach((item, index) => {
-        let issueQty = Number(document.getElementById(`issue${index}`).value);
-
-        if(issueQty > 0){
-            anyIssue = true;
-
-            if(issueQty > item.Quantity){
-                alert(item.Product + " me stock kam hai");
-                return;
-            }
-
-            // Reduce Stock
-            item.Quantity -= issueQty;
-
-            // Create History
-            if(!item.History){
-                item.History = [];
-            }
-
-            item.History.push({
-                type: "Issue",
-                qty: issueQty,
-                narration: narration,
-                date: new Date().toLocaleString()
-            });
-        }
-    });
-
-    if(!anyIssue){
-        alert("Issue Qty Enter Karo");
+    if(issueQty <= 0){
+        alert("Enter valid quantity");
         return;
     }
 
+    if(issueQty > products[index].Quantity){
+        alert("Not enough stock");
+        return;
+    }
+
+    // Reduce Stock
+    products[index].Quantity = Number(products[index].Quantity) - issueQty;
+
+    // History
+    if(!products[index].History){
+        products[index].History = [];
+    }
+
+    products[index].History.push({
+        type: "Issue",
+        qty: issueQty,
+        narration: narration,
+        date: new Date().toLocaleString()
+    });
+
     localStorage.setItem("products", JSON.stringify(products));
-    alert("Issue Voucher Saved");
+    alert("Stock Issued");
     displayProducts();
-    
-    // Clear Narration and Inputs
-    document.getElementById("narration").value = "";
 }
 
 // Receive Stock
