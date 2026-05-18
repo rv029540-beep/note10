@@ -226,6 +226,10 @@ textarea{
 
 <div class="controls">
 
+<button onclick="monthlyReport()">
+📊 Monthly Report
+</button>
+
 <input
 type="text"
 id="search"
@@ -271,10 +275,7 @@ onkeyup="searchProduct()">
 <tbody id="tbody"></tbody>
 </table>
 
-<div class="report-section">
-<button onclick="monthlyReport()">📊 Monthly Report</button>
-<button onclick="stockSummary()">📈 Stock Summary</button>
-</div>
+
 
 <h2 style="margin-top:25px;">📝 Narration</h2>
 
@@ -293,7 +294,7 @@ onkeyup="searchProduct()">
 
 <input type="number" id="newPrice" placeholder="Price" style="width:100%;padding:10px;margin-bottom:10px;">
 
-<input type="number" id="newStock" placeholder="Opening Stock" style="width:100%;padding:10px;margin-bottom:10px;">
+<input type="number" id="newStock" placeholder="Opening Stock" style="width:100%;padding:10px;margin-bottom:15px;">
 
 <button class="btn-add" onclick="addProduct()">Save</button>
 <button class="btn-clear" onclick="closeAddProduct()">Cancel</button>
@@ -597,7 +598,84 @@ function showHistory(index){
 }
 
 function monthlyReport(){
-    alert("Monthly Report Ready");
+
+    let report = window.open("","","width=1000,height=600");
+
+    let html = `
+    <html>
+    <head>
+    <title>Monthly Report</title>
+    <style>
+    body{
+        font-family:Arial;
+        padding:20px;
+    }
+
+    table{
+        width:100%;
+        border-collapse:collapse;
+    }
+
+    th,td{
+        border:1px solid #ccc;
+        padding:10px;
+        text-align:center;
+    }
+
+    th{
+        background:#007bff;
+        color:white;
+    }
+    </style>
+    </head>
+
+    <body>
+
+    <h2>📊 Monthly Report</h2>
+
+    <table>
+
+    <tr>
+        <th>Product</th>
+        <th>Total Issue</th>
+        <th>Total Receive</th>
+    </tr>
+    `;
+
+    products.forEach(product=>{
+
+        let totalIssue = 0;
+        let totalReceive = 0;
+
+        product.History.forEach(item=>{
+
+            if(item.type === "Issue"){
+                totalIssue += item.qty;
+            }
+
+            if(item.type === "Received"){
+                totalReceive += item.qty;
+            }
+
+        });
+
+        html += `
+        <tr>
+            <td>${product.Product}</td>
+            <td>${totalIssue}</td>
+            <td>${totalReceive}</td>
+        </tr>
+        `;
+
+    });
+
+    html += `
+    </table>
+    </body>
+    </html>
+    `;
+
+    report.document.write(html);
 }
 
 function stockSummary(){
