@@ -262,9 +262,7 @@ onkeyup="searchProduct()">
 ➕ Add Product
 </button>
 
-<button class="btn-clear" onclick="clearAllData()">
-🗑️ Clear All
-</button>
+
 
 </div>
 
@@ -280,7 +278,6 @@ onkeyup="searchProduct()">
 <th>Issue</th>
 <th>Receive Qty</th>
 <th>Receive</th>
-<th>Delete</th>
 <th>Ledger</th>
 </tr>
 </thead>
@@ -391,20 +388,8 @@ function displayProducts(){
             </td>
 
             <td>
-                <button class="btn-clear" onclick="deleteProduct(${originalIndex})">
-                🗑️
-                </button>
-            </td>
-
-            <td>
                 <button class="btn-ledger" onclick="showHistory(${originalIndex})">
                 Ledger
-                </button>
-            </td>
-
-            <td>
-                <button class="btn-clear" onclick="deleteProduct(${originalIndex})">
-                🗑️
                 </button>
             </td>
         </tr>
