@@ -12,7 +12,7 @@
 <style>
 
 body{
-    font-family: Arial;
+    font-family:Arial;
     background:#f2f2f2;
     padding:20px;
 }
@@ -20,7 +20,7 @@ body{
 .box{
     max-width:1200px;
     margin:auto;
-    background:white;
+    background:#fff;
     padding:20px;
     border-radius:10px;
     box-shadow:0 0 10px rgba(0,0,0,0.2);
@@ -34,14 +34,14 @@ h1,h2{
     display:block;
     margin:auto;
     padding:10px;
-    width:300px;
+    width:350px;
     border:1px solid #ccc;
     border-radius:5px;
 }
 
 table{
     width:100%;
-    border-collapse: collapse;
+    border-collapse:collapse;
     margin-top:20px;
 }
 
@@ -93,7 +93,7 @@ textarea{
 
 <h1>Inventory Software</h1>
 
-<!-- Search -->
+<!-- SEARCH -->
 
 <input
 type="text"
@@ -103,7 +103,7 @@ onkeyup="searchProduct()">
 
 <br><br>
 
-<!-- Excel Upload -->
+<!-- EXCEL UPLOAD -->
 
 <label><b>Upload Excel File:</b></label>
 
@@ -112,11 +112,12 @@ type="file"
 id="excelFile"
 accept=".xlsx,.xls">
 
-<!-- Table -->
+<!-- TABLE -->
 
 <table>
 
 <thead>
+
 <tr>
 <th>Product</th>
 <th>Price</th>
@@ -127,23 +128,30 @@ accept=".xlsx,.xls">
 <th>Receive</th>
 <th>Ledger</th>
 </tr>
+
 </thead>
 
 <tbody id="tbody"></tbody>
 
 </table>
 
-<!-- Monthly Report -->
+<!-- REPORT -->
 
 <center>
+
 <button
 class="reportBtn"
 onclick="monthlyReport()">
+
 Monthly Report
+
 </button>
+
 </center>
 
 <br><br>
+
+<!-- NARRATION -->
 
 <h2>Issue / Receive Narration</h2>
 
@@ -155,22 +163,24 @@ placeholder="Narration"></textarea>
 
 <script>
 
-// Product Data
+// PRODUCTS
 
 let products =
 JSON.parse(localStorage.getItem("products")) || [];
 
-// Show Existing Data
-
 displayProducts();
 
 
-// Excel Upload
+// EXCEL UPLOAD
 
 document.getElementById("excelFile")
 .addEventListener("change", function(e){
 
     let file = e.target.files[0];
+
+    if(!file){
+        return;
+    }
 
     let reader = new FileReader();
 
@@ -183,14 +193,17 @@ document.getElementById("excelFile")
         XLSX.read(data,{type:'array'});
 
         let sheet =
-        workbook.Sheets[workbook.SheetNames[0]];
+        workbook.Sheets[
+        workbook.SheetNames[0]
+        ];
 
         let excelData =
-        XLSX.utils.sheet_to_json(sheet,{
-            range:0
-        });
+        XLSX.utils.sheet_to_json(sheet);
 
-        products = excelData.map(row => ({
+        // NEW PRODUCTS
+
+        let newProducts =
+        excelData.map(row => ({
 
             Product:
             row.product
@@ -199,7 +212,7 @@ document.getElementById("excelFile")
             ||
             row.Particulars
             ||
-            "",
+            "No Name",
 
             Price:
             Number(row.Price) || 0,
@@ -236,12 +249,16 @@ document.getElementById("excelFile")
 
         }));
 
-        localStorage.setItem(
-        "products",
-        JSON.stringify(products)
-        );
+        // ADD PRODUCTS
+
+        products.push(...newProducts);
+
+        saveData();
 
         displayProducts();
+
+        alert("Excel Uploaded Successfully");
+
     };
 
     reader.readAsArrayBuffer(file);
@@ -249,18 +266,30 @@ document.getElementById("excelFile")
 });
 
 
-// Display Products
+// SAVE DATA
+
+function saveData(){
+
+    localStorage.setItem(
+    "products",
+    JSON.stringify(products)
+    );
+
+}
+
+
+// DISPLAY PRODUCTS
 
 function displayProducts(){
 
     let tbody =
     document.getElementById("tbody");
 
-    tbody.innerHTML = "";
+    let html = "";
 
     products.forEach((item,index)=>{
 
-        tbody.innerHTML += `
+        html += `
 
         <tr>
 
@@ -325,10 +354,13 @@ function displayProducts(){
 
         `;
     });
+
+    tbody.innerHTML = html;
+
 }
 
 
-// Issue Stock
+// ISSUE STOCK
 
 function issueStock(index){
 
@@ -336,7 +368,8 @@ function issueStock(index){
     Number(
     document.getElementById(
     `issue${index}`
-    ).value);
+    ).value
+    );
 
     let narration =
     document.getElementById(
@@ -357,20 +390,17 @@ function issueStock(index){
         return;
     }
 
-    products[index].Quantity =
-    Number(products[index].Quantity)
-    - issueQty;
+    // REDUCE STOCK
 
-    if(!products[index].History){
+    products[index].Quantity -= issueQty;
 
-        products[index].History = [];
-    }
+    // HISTORY
 
     products[index].History.push({
 
         type:"Issue",
 
-        qty: issueQty,
+        qty:issueQty,
 
         narration:narration,
 
@@ -378,18 +408,16 @@ function issueStock(index){
 
     });
 
-    localStorage.setItem(
-    "products",
-    JSON.stringify(products)
-    );
+    saveData();
+
+    displayProducts();
 
     alert("Stock Issued");
 
-    displayProducts();
 }
 
 
-// Receive Stock
+// RECEIVE STOCK
 
 function receiveStock(index){
 
@@ -397,7 +425,8 @@ function receiveStock(index){
     Number(
     document.getElementById(
     `receive${index}`
-    ).value);
+    ).value
+    );
 
     let narration =
     document.getElementById(
@@ -411,20 +440,17 @@ function receiveStock(index){
         return;
     }
 
-    products[index].Quantity =
-    Number(products[index].Quantity)
-    + receiveQty;
+    // ADD STOCK
 
-    if(!products[index].History){
+    products[index].Quantity += receiveQty;
 
-        products[index].History = [];
-    }
+    // HISTORY
 
     products[index].History.push({
 
         type:"Received",
 
-        qty: receiveQty,
+        qty:receiveQty,
 
         narration:narration,
 
@@ -432,24 +458,24 @@ function receiveStock(index){
 
     });
 
-    localStorage.setItem(
-    "products",
-    JSON.stringify(products)
-    );
+    saveData();
+
+    displayProducts();
 
     alert("Stock Received");
 
-    displayProducts();
 }
 
 
-// Ledger
+// LEDGER
 
 function showHistory(index){
 
-    let product = products[index];
+    let product =
+    products[index];
 
-    let history = product.History || [];
+    let history =
+    product.History || [];
 
     if(history.length === 0){
 
@@ -459,7 +485,11 @@ function showHistory(index){
     }
 
     let ledgerWindow =
-    window.open("","","width=900,height=600");
+    window.open(
+    "",
+    "",
+    "width=1000,height=600"
+    );
 
     let html = `
 
@@ -479,7 +509,6 @@ function showHistory(index){
     table{
         width:100%;
         border-collapse:collapse;
-        margin-top:20px;
     }
 
     th,td{
@@ -493,16 +522,16 @@ function showHistory(index){
         color:white;
     }
 
-    h2{
-        text-align:center;
-    }
-
     button{
-        padding:5px 10px;
         background:red;
         color:white;
         border:none;
+        padding:5px 10px;
         cursor:pointer;
+    }
+
+    h2{
+        text-align:center;
     }
 
     </style>
@@ -518,16 +547,18 @@ function showHistory(index){
     <table>
 
     <tr>
+
         <th>Type</th>
         <th>Quantity</th>
         <th>Narration</th>
         <th>Date & Time</th>
         <th>Delete</th>
+
     </tr>
 
     `;
 
-    history.forEach((item,historyIndex) => {
+    history.forEach((item,historyIndex)=>{
 
         html += `
 
@@ -537,7 +568,7 @@ function showHistory(index){
 
             <td>${item.qty}</td>
 
-            <td>${item.narration || ""}</td>
+            <td>${item.narration}</td>
 
             <td>${item.date}</td>
 
@@ -555,6 +586,7 @@ function showHistory(index){
         </tr>
 
         `;
+
     });
 
     html += `
@@ -568,16 +600,19 @@ function showHistory(index){
     `;
 
     ledgerWindow.document.write(html);
+
 }
 
 
-// Delete Entry
+// DELETE ENTRY
 
 function deleteEntry(productIndex,historyIndex){
 
     let item =
     products[productIndex]
     .History[historyIndex];
+
+    // REVERSE STOCK
 
     if(item.type === "Issue"){
 
@@ -589,30 +624,39 @@ function deleteEntry(productIndex,historyIndex){
     else if(item.type === "Received"){
 
         products[productIndex]
-        .Quantity -= item.qty;
+        .Quantity = Math.max(
+        0,
+        products[productIndex]
+        .Quantity - item.qty
+        );
+
     }
+
+    // DELETE HISTORY
 
     products[productIndex]
     .History
     .splice(historyIndex,1);
 
-    localStorage.setItem(
-    "products",
-    JSON.stringify(products)
-    );
+    saveData();
+
+    displayProducts();
 
     alert("Voucher Deleted");
 
-    displayProducts();
 }
 
 
-// Monthly Report
+// MONTHLY REPORT
 
 function monthlyReport(){
 
     let reportWindow =
-    window.open("","","width=1000,height=600");
+    window.open(
+    "",
+    "",
+    "width=1000,height=600"
+    );
 
     let html = `
 
@@ -632,7 +676,6 @@ function monthlyReport(){
     table{
         width:100%;
         border-collapse:collapse;
-        margin-top:20px;
     }
 
     th,td{
@@ -663,7 +706,6 @@ function monthlyReport(){
     <tr>
 
         <th>Product</th>
-
         <th>Total Issued</th>
 
     </tr>
@@ -691,10 +733,13 @@ function monthlyReport(){
                     &&
                     itemDate.getFullYear() === now.getFullYear()
                 ){
+
                     totalIssue += item.qty;
+
                 }
 
             });
+
         }
 
         html += `
@@ -708,6 +753,7 @@ function monthlyReport(){
         </tr>
 
         `;
+
     });
 
     html += `
@@ -721,10 +767,11 @@ function monthlyReport(){
     `;
 
     reportWindow.document.write(html);
+
 }
 
 
-// Search Product + Buttons
+// SEARCH
 
 function searchProduct(){
 
@@ -739,35 +786,36 @@ function searchProduct(){
 
     rows.forEach(row => {
 
-        let rowText =
-        row.innerText.toLowerCase();
-
-        let searchText = input;
-
-        if(
-            input.includes("material receive")
-            ||
-            input.includes("receive")
-        ){
-            searchText = "receive";
-        }
-
-        if(input.includes("ledger")){
-            searchText = "ledger";
-        }
-
-        if(input.includes("issue")){
-            searchText = "issue";
-        }
-
-        if(rowText.includes(searchText)){
+        if(input === ""){
 
             row.style.display = "";
 
-        }else{
-
-            row.style.display = "none";
+            return;
         }
+
+        let product =
+        row.children[0]
+        .innerText
+        .toLowerCase();
+
+        let found =
+
+        product.includes(input)
+
+        ||
+
+        "issue".includes(input)
+
+        ||
+
+        "receive".includes(input)
+
+        ||
+
+        "ledger".includes(input);
+
+        row.style.display =
+        found ? "" : "none";
 
     });
 
