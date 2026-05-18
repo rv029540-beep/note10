@@ -100,6 +100,21 @@ button{
     background:#dc3545;
 }
 
+.controls button{
+    height:45px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.controls{
+    align-items:center;
+}
+
+.btn-report{
+    background:red;
+}
+
 .btn-add{
     background:#28a745;
 }
@@ -226,7 +241,7 @@ textarea{
 
 <div class="controls">
 
-<button onclick="monthlyReport()">
+<button class="btn-report" onclick="monthlyReport()">
 📊 Monthly Report
 </button>
 
@@ -267,8 +282,8 @@ onkeyup="searchProduct()">
 <th>Issue</th>
 <th>Receive Qty</th>
 <th>Receive</th>
-<th>Ledger</th>
 <th>Delete</th>
+<th>Ledger</th>
 </tr>
 </thead>
 
@@ -374,6 +389,12 @@ function displayProducts(){
             <td>
                 <button class="btn-receive" onclick="receiveStock(${originalIndex})">
                 Receive
+                </button>
+            </td>
+
+            <td>
+                <button class="btn-clear" onclick="deleteProduct(${originalIndex})">
+                🗑️
                 </button>
             </td>
 
