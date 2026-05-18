@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -20,7 +21,7 @@ body{
 .box{
     max-width:1200px;
     margin:auto;
-    background:#fff;
+    background:white;
     padding:20px;
     border-radius:10px;
     box-shadow:0 0 10px rgba(0,0,0,0.2);
@@ -85,6 +86,7 @@ textarea{
 }
 
 </style>
+
 </head>
 
 <body>
@@ -103,7 +105,7 @@ onkeyup="searchProduct()">
 
 <br><br>
 
-<!-- EXCEL UPLOAD -->
+<!-- EXCEL -->
 
 <label><b>Upload Excel File:</b></label>
 
@@ -119,6 +121,7 @@ accept=".xlsx,.xls">
 <thead>
 
 <tr>
+
 <th>Product</th>
 <th>Price</th>
 <th>Stock</th>
@@ -127,6 +130,7 @@ accept=".xlsx,.xls">
 <th>Receive Qty</th>
 <th>Receive</th>
 <th>Ledger</th>
+
 </tr>
 
 </thead>
@@ -166,9 +170,23 @@ placeholder="Narration"></textarea>
 // PRODUCTS
 
 let products =
-JSON.parse(localStorage.getItem("products")) || [];
+JSON.parse(
+localStorage.getItem("products")
+) || [];
 
 displayProducts();
+
+
+// SAVE DATA
+
+function saveData(){
+
+    localStorage.setItem(
+    "products",
+    JSON.stringify(products)
+    );
+
+}
 
 
 // EXCEL UPLOAD
@@ -200,8 +218,6 @@ document.getElementById("excelFile")
         let excelData =
         XLSX.utils.sheet_to_json(sheet);
 
-        // NEW PRODUCTS
-
         let newProducts =
         excelData.map(row => ({
 
@@ -229,6 +245,7 @@ document.getElementById("excelFile")
             History:[
 
                 {
+
                     type:"Received",
 
                     qty:
@@ -242,7 +259,10 @@ document.getElementById("excelFile")
 
                     narration:"Opening Stock",
 
-                    date:new Date().toLocaleString()
+                    date:
+                    new Date()
+                    .toLocaleString()
+
                 }
 
             ]
@@ -264,18 +284,6 @@ document.getElementById("excelFile")
     reader.readAsArrayBuffer(file);
 
 });
-
-
-// SAVE DATA
-
-function saveData(){
-
-    localStorage.setItem(
-    "products",
-    JSON.stringify(products)
-    );
-
-}
 
 
 // DISPLAY PRODUCTS
@@ -353,6 +361,7 @@ function displayProducts(){
         </tr>
 
         `;
+
     });
 
     tbody.innerHTML = html;
@@ -404,7 +413,9 @@ function issueStock(index){
 
         narration:narration,
 
-        date:new Date().toLocaleString()
+        date:
+        new Date()
+        .toLocaleString()
 
     });
 
@@ -454,7 +465,9 @@ function receiveStock(index){
 
         narration:narration,
 
-        date:new Date().toLocaleString()
+        date:
+        new Date()
+        .toLocaleString()
 
     });
 
@@ -727,11 +740,19 @@ function monthlyReport(){
                 new Date();
 
                 if(
+
                     item.type === "Issue"
+
                     &&
-                    itemDate.getMonth() === now.getMonth()
+
+                    itemDate.getMonth()
+                    === now.getMonth()
+
                     &&
-                    itemDate.getFullYear() === now.getFullYear()
+
+                    itemDate.getFullYear()
+                    === now.getFullYear()
+
                 ){
 
                     totalIssue += item.qty;
@@ -786,36 +807,57 @@ function searchProduct(){
 
     rows.forEach(row => {
 
-        if(input === ""){
-
-            row.style.display = "";
-
-            return;
-        }
-
         let product =
         row.children[0]
         .innerText
         .toLowerCase();
 
-        let found =
+        let show = false;
 
-        product.includes(input)
+        // EMPTY SEARCH
 
-        ||
+        if(input === ""){
 
-        "issue".includes(input)
+            show = true;
 
-        ||
+        }
 
-        "receive".includes(input)
+        // PRODUCT SEARCH
 
-        ||
+        else if(
+            product.includes(input)
+        ){
 
-        "ledger".includes(input);
+            show = true;
+
+        }
+
+        // BUTTON SEARCH
+
+        else if(
+
+            input === "issue"
+
+            ||
+
+            input === "receive"
+
+            ||
+
+            input === "ledger"
+
+            ||
+
+            input === "material receive"
+
+        ){
+
+            show = true;
+
+        }
 
         row.style.display =
-        found ? "" : "none";
+        show ? "" : "none";
 
     });
 
@@ -824,4 +866,5 @@ function searchProduct(){
 </script>
 
 </body>
+
 </html>
