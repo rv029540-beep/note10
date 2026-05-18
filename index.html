@@ -1,5 +1,3 @@
-```html
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -554,7 +552,13 @@ function deleteProduct(index){
     displayProducts();
 }
 
+function clearAllData(){
 
+    let ok = confirm("Delete All Data?");
+
+    if(!ok){
+        return;
+    }
 
     localStorage.removeItem("inventoryProducts");
 
@@ -649,15 +653,7 @@ function monthlyReport(){
 
     <body>
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-
-<h2>📊 Monthly Used Items Report</h2>
-
-<button onclick="window.print()" style="background:red;color:white;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;">
-📥 Download PDF
-</button>
-
-</div>
+    <h2>📊 Monthly Used Items Report</h2>
 
     <table>
 
@@ -784,4 +780,3 @@ function downloadExcel(){
 
 </body>
 </html>
-```
