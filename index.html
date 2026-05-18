@@ -554,13 +554,7 @@ function deleteProduct(index){
     displayProducts();
 }
 
-function clearAllData(){
 
-    let ok = confirm("Delete All Data?");
-
-    if(!ok){
-        return;
-    }
 
     localStorage.removeItem("inventoryProducts");
 
