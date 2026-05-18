@@ -626,7 +626,9 @@ function monthlyReport(){
     <html>
     <head>
     <title>Monthly Report</title>
+
     <style>
+
     body{
         font-family:Arial;
         padding:20px;
@@ -644,49 +646,67 @@ function monthlyReport(){
     }
 
     th{
-        background:#007bff;
+        background:red;
         color:white;
     }
+
     </style>
     </head>
 
     <body>
 
-    <h2>📊 Monthly Report</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+
+<h2>📊 Monthly Used Items Report</h2>
+
+<button onclick="window.print()" style="background:red;color:white;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;">
+📥 Download PDF
+</button>
+
+</div>
 
     <table>
 
     <tr>
         <th>Product</th>
-        <th>Total Issue</th>
-        <th>Total Receive</th>
+        <th>Total Used</th>
     </tr>
     `;
+
+    let now = new Date();
 
     products.forEach(product=>{
 
         let totalIssue = 0;
-        
 
         product.History.forEach(item=>{
 
-            if(item.type === "Issue"){
-                totalIssue += item.qty;
-            }
+            let itemDate = new Date(item.date);
 
-            if(item.type === "Received"){
-                totalReceive += item.qty;
+            if(
+                item.type === "Issue"
+                &&
+                itemDate.getMonth() === now.getMonth()
+                &&
+                itemDate.getFullYear() === now.getFullYear()
+            ){
+                totalIssue += item.qty;
             }
 
         });
 
-        html += `
-        <tr>
-            <td>${product.Product}</td>
-            <td>${totalIssue}</td>
-            <td>${totalReceive}</td>
-        </tr>
-        `;
+        // ONLY SHOW USED ITEMS
+
+        if(totalIssue > 0){
+
+            html += `
+            <tr>
+                <td>${product.Product}</td>
+                <td>${totalIssue}</td>
+            </tr>
+            `;
+
+        }
 
     });
 
