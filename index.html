@@ -188,6 +188,14 @@ textarea{
 .total-row{
     background:#e8e8e8 !important;
     font-weight:bold;
+}/* ================= ADD PRODUCT BUTTON ================= */
+
+.btn-add{
+    background:#28a745;
+}
+
+.btn-add:hover{
+    background:#218838;
 }
 
 </style>
@@ -221,7 +229,183 @@ textarea{
 
 </div>
 
-<!-- CONTROLS --><!-- ADD PRODUCT -->
+<!-- CONTROLS --><!-- ================= CONTROLS ================= -->
+
+<div class="controls">
+
+<input
+type="text"
+id="search"
+placeholder="Search Product / Issue / Receive / Ledger"
+onkeyup="searchProduct()">
+
+<select id="searchOption">
+
+<option value="all">Search All</option>
+<option value="product">Product</option>
+<option value="narration">Narration</option>
+
+</select>
+
+<div class="file-upload">
+
+<label for="excelFile">
+📤 Upload Excel
+</label>
+
+<input
+type="file"
+id="excelFile"
+accept=".xlsx,.xls">
+
+</div>
+
+<button
+class="btn-download"
+onclick="downloadExcel()">
+
+📥 Download Excel
+
+</button>
+
+<button
+class="btn-add"
+onclick="openAddProduct()">
+
+➕ Add Product
+
+</button>
+
+</div>
+
+
+// ================= OPEN ADD PRODUCT =================
+
+function openAddProduct(){
+
+    document.getElementById(
+    "addProductPopup"
+    ).style.display = "flex";
+
+}
+
+// ================= CLOSE ADD PRODUCT =================
+
+function closeAddProduct(){
+
+    document.getElementById(
+    "addProductPopup"
+    ).style.display = "none";
+
+}
+
+// ================= ADD PRODUCT =================
+
+function addProduct(){
+
+    let productName =
+    document.getElementById("newProduct")
+    .value
+    .trim();
+
+    let price =
+    Number(
+    document.getElementById("newPrice")
+    .value
+    );
+
+    let stock =
+    Number(
+    document.getElementById("newStock")
+    .value
+    );
+
+    // VALIDATION
+
+    if(productName === ""){
+
+        alert("Enter Product Name");
+
+        return;
+
+    }
+
+    // DUPLICATE CHECK
+
+    let exists =
+    products.some(
+    p =>
+    p.Product.toLowerCase()
+    ===
+    productName.toLowerCase()
+    );
+
+    if(exists){
+
+        alert("Product Already Exists");
+
+        return;
+
+    }
+
+    // ADD PRODUCT
+
+    products.push({
+
+        Product:productName,
+
+        Price:price || 0,
+
+        Quantity:stock || 0,
+
+        History:[
+
+            {
+
+                type:"Received",
+
+                qty:stock || 0,
+
+                narration:"Opening Stock",
+
+                date:
+                new Date()
+                .toLocaleString()
+
+            }
+
+        ]
+
+    });
+
+    // SAVE
+
+    saveData();
+
+    displayProducts();
+
+    // CLOSE POPUP
+
+    closeAddProduct();
+
+    // CLEAR INPUTS
+
+    document.getElementById(
+    "newProduct"
+    ).value = "";
+
+    document.getElementById(
+    "newPrice"
+    ).value = "";
+
+    document.getElementById(
+    "newStock"
+    ).value = "";
+
+    alert("✅ Product Added Successfully");
+
+}
+</div><!-- ADD PRODUCT -->
 
 <div class="controls">
 
