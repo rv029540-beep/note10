@@ -279,29 +279,7 @@ onclick="openAddProduct()">
 </div>
 
 
-// ================= OPEN ADD PRODUCT =================
 
-function openAddProduct(){
-
-    document.getElementById(
-    "addProductPopup"
-    ).style.display = "flex";
-
-}
-
-// ================= CLOSE ADD PRODUCT =================
-
-function closeAddProduct(){
-
-    document.getElementById(
-    "addProductPopup"
-    ).style.display = "none";
-
-}
-
-// ================= ADD PRODUCT =================
-
-function addProduct(){
 
     let productName =
     document.getElementById("newProduct")
@@ -406,33 +384,6 @@ function addProduct(){
 
 }
 </div><!-- ADD PRODUCT -->
-
-<div class="controls">
-
-<input
-type="text"
-id="newProduct"
-placeholder="Product Name">
-
-<input
-type="number"
-id="newPrice"
-placeholder="Price">
-
-<input
-type="number"
-id="newStock"
-placeholder="Opening Stock">
-
-<button
-onclick="addProduct()">
-
-➕ Add Product
-
-</button>
-
-</div>
-
 <div class="controls">
 
 <input
@@ -499,6 +450,84 @@ onclick="downloadExcel()">
 <tbody id="tbody"></tbody>
 
 </table>
+    <!-- ================= ADD PRODUCT POPUP ================= -->
+
+<div
+id="addProductPopup"
+style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.5);
+justify-content:center;
+align-items:center;
+z-index:999;
+">
+
+<div
+style="
+background:white;
+padding:25px;
+border-radius:10px;
+width:350px;
+">
+
+<h2>Add Product</h2>
+
+<br>
+
+<input
+type="text"
+id="newProduct"
+placeholder="Product Name"
+style="
+width:100%;
+padding:10px;
+margin-bottom:10px;
+">
+
+<input
+type="number"
+id="newPrice"
+placeholder="Price"
+style="
+width:100%;
+padding:10px;
+margin-bottom:10px;
+">
+
+<input
+type="number"
+id="newStock"
+placeholder="Opening Stock"
+style="
+width:100%;
+padding:10px;
+margin-bottom:15px;
+">
+
+<button
+class="btn-add"
+onclick="addProduct()">
+
+Save
+
+</button>
+
+<button
+class="btn-clear"
+onclick="closeAddProduct()">
+
+Cancel
+
+</button>
+
+</div>
+
+</div>
 
 <!-- REPORT -->
 
@@ -1584,6 +1613,24 @@ function stockSummary(){
     </html>
     `;
     win.document.write(html);
+
+}// ================= OPEN ADD PRODUCT =================
+
+function openAddProduct(){
+
+    document.getElementById(
+    "addProductPopup"
+    ).style.display = "flex";
+
+}
+
+// ================= CLOSE ADD PRODUCT =================
+
+function closeAddProduct(){
+
+    document.getElementById(
+    "addProductPopup"
+    ).style.display = "none";
 
 }
 
