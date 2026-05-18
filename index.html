@@ -1,289 +1,940 @@
-<!-- ==================== SHOW HISTORY ==================== -->
+<!DOCTYPE html>
+<html lang="en">
 
-function showHistory(index) {
-    
-    let product = products[index];
-    
-    let history = product.History || [];
-    
-    if(history.length === 0){
-        
-        alert("No Ledger Found!");
-        
-        return;
-        
-    }
+<head>
 
-    let ledgerWindow = window.open(
-        "",
-        "",
-        "width=1100,height=650"
-    );
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    let html = `
-    
-    <html>
-    
-    <head>
-    
-    <title>Ledger</title>
-    
-    <style>
-    
-    body{
-        font-family:Arial;
-        padding:20px;
-        background:#f5f5f5;
-    }
+<title>Inventory Software</title>
 
-    h2{
-        text-align:center;
-        color:#007bff;
-        margin-bottom:20px;
-    }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-    table{
-        width:100%;
-        border-collapse:collapse;
-        background:white;
-    }
+<style>
 
-    th,td{
-        border:1px solid #ccc;
-        padding:12px;
-        text-align:center;
-    }
-
-    th{
-        background:#007bff;
-        color:white;
-    }
-
-    tr:nth-child(even){
-        background:#f9f9f9;
-    }
-
-    button{
-        background:red;
-        color:white;
-        border:none;
-        padding:6px 12px;
-        border-radius:5px;
-        cursor:pointer;
-    }
-
-    button:hover{
-        background:#c82333;
-    }
-
-    .summary{
-        margin-bottom:20px;
-        padding:15px;
-        background:white;
-        border-radius:10px;
-        box-shadow:0 0 10px rgba(0,0,0,0.1);
-    }
-
-    </style>
-    
-    </head>
-    
-    <body>
-
-    <div class="summary">
-
-    <h2>📒 Stock Ledger - ${product.Product}</h2>
-
-    <p><strong>Current Stock:</strong> ${product.Quantity}</p>
-
-    <p><strong>Price:</strong> ₹${product.Price}</p>
-
-    </div>
-
-    <table>
-    
-    <tr>
-    
-        <th>S.No</th>
-        <th>Type</th>
-        <th>Quantity</th>
-        <th>Narration</th>
-        <th>Date & Time</th>
-        <th>Delete</th>
-    
-    </tr>
-    
-    `;
-
-    history.forEach((item, historyIndex) => {
-        
-        html += `
-        
-        <tr>
-        
-            <td>${historyIndex + 1}</td>
-            
-            <td>${item.type}</td>
-            
-            <td>${item.qty}</td>
-            
-            <td>${item.narration || ''}</td>
-            
-            <td>${item.date}</td>
-            
-            <td>
-            
-                <button onclick="window.opener.deleteEntry(${index}, ${historyIndex})">
-                
-                Delete
-                
-                </button>
-            
-            </td>
-        
-        </tr>
-        
-        `;
-        
-    });
-
-    html += `
-    
-    </table>
-    
-    </body>
-    
-    </html>
-    
-    `;
-
-    ledgerWindow.document.write(html);
-    
-    ledgerWindow.document.close();
-
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
 }
 
+body{
+    font-family:Arial;
+    background:#f0f2f5;
+    padding:20px;
+}
 
-// ==================== DELETE ENTRY ====================
+.box{
+    max-width:1400px;
+    margin:auto;
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
 
-function deleteEntry(productIndex, historyIndex) {
+h1,h2{
+    text-align:center;
+}
 
-    let item =
-    products[productIndex]
-    .History[historyIndex];
+h1{
+    color:#007bff;
+    margin-bottom:20px;
+}
 
-    // Reverse Stock
+.controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    justify-content:center;
+    margin-bottom:20px;
+}
 
-    if(item.type === "Issue"){
+#search,
+#searchOption,
+#reportMonth{
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:8px;
+}
 
-        products[productIndex]
-        .Quantity += item.qty;
+#search{
+    width:300px;
+}
 
-    }
+.file-upload label{
+    background:#007bff;
+    color:white;
+    padding:12px 20px;
+    border-radius:8px;
+    cursor:pointer;
+}
 
-    else{
+.file-upload input{
+    display:none;
+}
 
-        products[productIndex]
-        .Quantity -= item.qty;
+button{
+    padding:10px 15px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    color:white;
+}
 
-        if(products[productIndex].Quantity < 0){
+.btn-issue{
+    background:#dc3545;
+}
 
-            products[productIndex]
-            .Quantity = 0;
+.btn-receive{
+    background:#28a745;
+}
 
-        }
+.btn-ledger{
+    background:#17a2b8;
+}
 
-    }
+.btn-download{
+    background:#6f42c1;
+}
 
-    // Delete History
+.btn-clear{
+    background:#dc3545;
+}
 
-    products[productIndex]
-    .History
-    .splice(historyIndex,1);
+button:hover{
+    opacity:0.9;
+}
 
-    saveData();
+.status-bar{
+    display:flex;
+    justify-content:space-around;
+    flex-wrap:wrap;
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.status-item{
+    background:#f8f9fa;
+    padding:15px;
+    border-radius:10px;
+    min-width:180px;
+    text-align:center;
+}
+
+.status-item span{
+    display:block;
+    font-size:25px;
+    font-weight:bold;
+    color:#007bff;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+th,td{
+    border:1px solid #ccc;
+    padding:10px;
+    text-align:center;
+}
+
+th{
+    background:#007bff;
+    color:white;
+}
+
+tr:nth-child(even){
+    background:#f9f9f9;
+}
+
+.stock-zero{
+    background:#ffcccc !important;
+}
+
+.stock-low{
+    background:#fff3cd !important;
+}
+
+input[type="number"]{
+    width:70px;
+    padding:5px;
+    text-align:center;
+}
+
+.report-section{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:20px;
+}
+
+textarea{
+    width:100%;
+    height:80px;
+    padding:10px;
+    margin-top:15px;
+    border:1px solid #ccc;
+    border-radius:8px;
+}
+
+.empty-row td{
+    padding:30px;
+}
+
+.total-row{
+    background:#e8e8e8 !important;
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h1>📦 Inventory Software</h1>
+
+<!-- STATUS -->
+
+<div class="status-bar">
+
+<div class="status-item">
+<span id="totalProducts">0</span>
+<label>Total Products</label>
+</div>
+
+<div class="status-item">
+<span id="totalStock">0</span>
+<label>Total Stock</label>
+</div>
+
+<div class="status-item">
+<span id="totalValue">₹0</span>
+<label>Total Value</label>
+</div>
+
+</div>
+
+<!-- CONTROLS -->
+
+<div class="controls">
+
+<input
+type="text"
+id="search"
+placeholder="Search Product / Issue / Receive / Ledger"
+onkeyup="searchProduct()">
+
+<select id="searchOption">
+
+<option value="all">Search All</option>
+<option value="product">Product</option>
+<option value="narration">Narration</option>
+
+</select>
+
+<div class="file-upload">
+
+<label for="excelFile">
+📤 Upload Excel
+</label>
+
+<input
+type="file"
+id="excelFile"
+accept=".xlsx,.xls">
+
+</div>
+
+<button
+class="btn-download"
+onclick="downloadExcel()">
+
+📥 Download Excel
+
+</button>
+
+<button
+class="btn-clear"
+onclick="clearAllData()">
+
+🗑️ Clear All
+
+</button>
+
+</div>
+
+<!-- TABLE -->
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>S.No</th>
+<th>Product</th>
+<th>Price</th>
+<th>Stock</th>
+<th>Value</th>
+<th>Issue Qty</th>
+<th>Issue</th>
+<th>Receive Qty</th>
+<th>Receive</th>
+<th>Ledger</th>
+<th>Delete</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tbody"></tbody>
+
+</table>
+
+<!-- REPORT -->
+
+<div class="report-section">
+
+<select id="reportMonth"></select>
+
+<button onclick="monthlyReport()">
+📊 Monthly Report
+</button>
+
+<button onclick="stockSummary()">
+📈 Stock Summary
+</button>
+
+</div>
+
+<!-- NARRATION -->
+
+<h2 style="margin-top:25px;">
+📝 Narration
+</h2>
+
+<textarea
+id="narration"
+placeholder="Enter narration..."></textarea>
+
+</div>
+
+<script>
+
+// ================= PRODUCTS =================
+
+let products =
+JSON.parse(
+localStorage.getItem("inventoryProducts")
+) || [];
+
+let filteredProducts = [...products];
+
+// ================= INIT =================
+
+function init(){
+
+    populateMonthOptions();
 
     displayProducts();
 
     updateStatus();
 
-    alert("✅ Ledger Entry Deleted");
-
 }
 
+init();
 
-// ==================== CLEAR ALL DATA ====================
+// ================= SAVE =================
 
-function clearAllData(){
+function saveData(){
 
-    let confirmDelete =
-    confirm(
-    "⚠️ Delete all inventory data?"
+    localStorage.setItem(
+    "inventoryProducts",
+    JSON.stringify(products)
     );
 
-    if(!confirmDelete){
-
-        return;
-
-    }
-
-    localStorage.removeItem(
-    "inventoryProducts"
-    );
-
-    products = [];
-
-    filteredProducts = [];
-
-    displayProducts();
+    filteredProducts = [...products];
 
     updateStatus();
 
-    alert("🗑️ All Data Cleared");
-
 }
 
+// ================= STATUS =================
 
-// ==================== STOCK SUMMARY ====================
+function updateStatus(){
 
-function stockSummary(){
-
-    let summaryWindow =
-    window.open(
-    "",
-    "",
-    "width=900,height=600"
-    );
+    let totalProducts = products.length;
 
     let totalStock = 0;
 
     let totalValue = 0;
 
+    products.forEach(p=>{
+
+        totalStock += p.Quantity;
+
+        totalValue += p.Quantity * p.Price;
+
+    });
+
+    document.getElementById(
+    "totalProducts"
+    ).innerText = totalProducts;
+
+    document.getElementById(
+    "totalStock"
+    ).innerText = totalStock;
+
+    document.getElementById(
+    "totalValue"
+    ).innerText =
+    "₹" + totalValue.toLocaleString();
+
+}
+
+// ================= DISPLAY =================
+
+function displayProducts(){
+
+    let tbody =
+    document.getElementById("tbody");
+
+    let html = "";
+
+    filteredProducts.forEach((item,index)=>{
+
+        let stockClass = "";
+
+        if(item.Quantity === 0){
+
+            stockClass = "stock-zero";
+
+        }else if(item.Quantity < 10){
+
+            stockClass = "stock-low";
+
+        }
+
+        let value =
+        item.Quantity * item.Price;
+
+        let originalIndex =
+        products.findIndex(
+        p => p.Product === item.Product
+        );
+
+        html += `
+
+        <tr>
+
+            <td>${index + 1}</td>
+
+            <td>${item.Product}</td>
+
+            <td>₹${item.Price}</td>
+
+            <td class="${stockClass}">
+            ${item.Quantity}
+            </td>
+
+            <td>
+            ₹${value.toLocaleString()}
+            </td>
+
+            <td>
+
+                <input
+                type="number"
+                id="issue${originalIndex}"
+                placeholder="Qty">
+
+            </td>
+
+            <td>
+
+                <button
+                class="btn-issue"
+                onclick="issueStock(${originalIndex})">
+
+                Issue
+
+                </button>
+
+            </td>
+
+            <td>
+
+                <input
+                type="number"
+                id="receive${originalIndex}"
+                placeholder="Qty">
+
+            </td>
+
+            <td>
+
+                <button
+                class="btn-receive"
+                onclick="receiveStock(${originalIndex})">
+
+                Receive
+
+                </button>
+
+            </td>
+
+            <td>
+
+                <button
+                class="btn-ledger"
+                onclick="showHistory(${originalIndex})">
+
+                Ledger
+
+                </button>
+
+            </td>
+
+            <td>
+
+                <button
+                class="btn-clear"
+                onclick="deleteProduct(${originalIndex})">
+
+                🗑️
+
+                </button>
+
+            </td>
+
+        </tr>
+
+        `;
+
+    });
+
+    if(filteredProducts.length === 0){
+
+        html = `
+
+        <tr class="empty-row">
+
+            <td colspan="11">
+
+            No Products Found
+
+            </td>
+
+        </tr>
+
+        `;
+
+    }
+
+    tbody.innerHTML = html;
+
+    addTotalRow();
+
+}
+
+// ================= TOTAL ROW =================
+
+function addTotalRow(){
+
+    let totalStock = 0;
+
+    let totalValue = 0;
+
+    filteredProducts.forEach(p=>{
+
+        totalStock += p.Quantity;
+
+        totalValue += p.Quantity * p.Price;
+
+    });
+
+    document.getElementById("tbody")
+    .innerHTML += `
+
+    <tr class="total-row">
+
+        <td colspan="3">
+        TOTAL
+        </td>
+
+        <td>${totalStock}</td>
+
+        <td>
+        ₹${totalValue.toLocaleString()}
+        </td>
+
+        <td colspan="6"></td>
+
+    </tr>
+
+    `;
+
+}
+
+// ================= EXCEL IMPORT =================
+
+document.getElementById("excelFile")
+.addEventListener("change", function(e){
+
+    let file = e.target.files[0];
+
+    if(!file){
+
+        return;
+
+    }
+
+    let reader = new FileReader();
+
+    reader.onload = function(event){
+
+        try{
+
+            let data =
+            new Uint8Array(
+            event.target.result
+            );
+
+            let workbook =
+            XLSX.read(data,{
+                type:'array'
+            });
+
+            let sheet =
+            workbook.Sheets[
+            workbook.SheetNames[0]
+            ];
+
+            let excelData =
+            XLSX.utils.sheet_to_json(sheet);
+
+            if(excelData.length === 0){
+
+                alert("Excel Empty");
+
+                return;
+
+            }
+
+            excelData.forEach(row=>{
+
+                let productName =
+                row.Product
+                ||
+                row.product
+                ||
+                row.Particulars
+                ||
+                row.Name
+                ||
+                "";
+
+                let price =
+                Number(
+                row.Price
+                ||
+                row.price
+                ||
+                row.Rate
+                ||
+                0
+                );
+
+                let quantity =
+                Number(
+                row.Stock
+                ||
+                row.stock
+                ||
+                row.Quantity
+                ||
+                0
+                );
+
+                if(!productName){
+
+                    return;
+
+                }
+
+                let existingIndex =
+                products.findIndex(
+                p =>
+                p.Product.toLowerCase()
+                ===
+                productName.toLowerCase()
+                );
+
+                if(existingIndex >= 0){
+
+                    products[existingIndex]
+                    .Quantity += quantity;
+
+                    products[existingIndex]
+                  .Price = price;
+
+                    products[existingIndex]
+                    .History.push({
+
+                        type:"Received",
+
+                        qty:quantity,
+
+                        narration:
+                        "Excel Import",
+                        date:
+                        new Date()
+                        .toLocaleString()
+                    });
+
+                }else{
+                    products.push({
+                        Product:productName,
+                        Price:price,
+                        Quantity:quantity,
+                        History:[
+                            {
+                                type:"Received",
+
+                                qty:quantity,
+
+                                narration:
+                                "Opening Stock",
+
+                                date:
+                                new Date()
+                                .toLocaleString()
+
+                            }
+                        ]
+                    });
+                }
+            });
+            saveData();
+            displayProducts();
+            alert(
+            "Excel Imported Successfully"
+            );
+            document.getElementById(
+            "excelFile"
+            ).value = "";
+        }catch(error){
+            alert(
+            "Import Error: "
+            + error.message
+            );
+        }
+
+    };
+
+    reader.readAsArrayBuffer(file);
+
+});
+
+// ================= DOWNLOAD =================
+
+function downloadExcel(){
+    if(products.length === 0){
+        alert("No Data");
+        return;
+
+    }
+
+    let exportData =
+    products.map(p=>({
+
+        Product:p.Product,
+
+        Price:p.Price,
+
+        Stock:p.Quantity,
+
+        Value:
+        p.Quantity * p.Price
+
+    }));
+
+    let ws =
+    XLSX.utils.json_to_sheet(
+    exportData
+    );
+
+    let wb =
+    XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+    wb,
+    ws,
+    "Inventory"
+    );
+
+    XLSX.writeFile(
+    wb,
+    "Inventory.xlsx"
+    );
+}
+
+// ================= ISSUE =================
+
+function issueStock(index){
+
+    let qty =
+    Number(
+    document.getElementById(
+    `issue${index}`
+    ).value
+    );
+
+    let narration =
+    document.getElementById(
+    "narration"
+    ).value;
+
+    if(qty <= 0){
+        alert("Invalid Quantity");
+        return;
+    }
+    if(qty > products[index].Quantity){
+        alert("Low Stock");
+        return;
+    }
+
+    products[index].Quantity -= qty;
+
+    products[index].History.push({
+        type:"Issue",
+        qty:qty,
+        narration:
+        narration || "Stock Issued",
+        date:
+        new Date().toLocaleString()
+
+    });
+
+    saveData();
+
+    displayProducts();
+
+    alert("Stock Issued");
+
+}
+
+// ================= RECEIVE =================
+
+function receiveStock(index){
+
+    let qty =
+    Number(
+    document.getElementById(
+    `receive${index}`
+    ).value
+    );
+
+    let narration =
+    document.getElementById(
+    "narration"
+    ).value;
+
+    if(qty <= 0){
+
+        alert("Invalid Quantity");
+
+        return;
+
+    }
+
+    products[index].Quantity += qty;
+    products[index].History.push({
+        type:"Received",
+        qty:qty,
+        narration:
+        narration || "Stock Received",
+        date:
+        new Date().toLocaleString()
+
+    });
+
+    saveData();
+
+    displayProducts();
+
+    alert("Stock Received");
+
+}
+
+// ================= SEARCH =================
+
+function searchProduct(){
+
+    let input =
+    document.getElementById("search")
+    .value
+    .toLowerCase();
+
+    filteredProducts =
+    products.filter(product=>{
+
+        return (
+
+            product.Product
+            .toLowerCase()
+            .includes(input)
+
+        );
+
+    });
+
+    displayProducts();
+
+}
+
+// ================= LEDGER =================
+
+function showHistory(index){
+
+    let product =
+    products[index];
+
+    let history =
+    product.History || [];
+
+    let win =
+    window.open(
+    "",
+    "",
+    "width=1000,height=600"
+    );
+
     let html = `
-    
+
     <html>
-    
+
     <head>
-    
-    <title>Stock Summary</title>
-    
+
+    <title>Ledger</title>
+
     <style>
-    
+
     body{
         font-family:Arial;
         padding:20px;
-        background:#f5f5f5;
-    }
-
-    h2{
-        text-align:center;
-        color:#007bff;
     }
 
     table{
         width:100%;
         border-collapse:collapse;
-        background:white;
     }
 
     th,td{
@@ -297,80 +948,354 @@ function stockSummary(){
         color:white;
     }
 
+    button{
+        background:red;
+        color:white;
+        border:none;
+        padding:5px 10px;
+    }
     </style>
-    
     </head>
-    
     <body>
-
-    <h2>📦 Stock Summary</h2>
-
+    <h2>
+    Ledger - ${product.Product}
+    </h2>
     <table>
-
     <tr>
-
-        <th>S.No</th>
-        <th>Product</th>
-        <th>Stock</th>
-        <th>Price</th>
-        <th>Total Value</th>
-
+        <th>Type</th>
+        <th>Qty</th>
+        <th>Narration</th>
+        <th>Date</th>
+        <th>Delete</th>
     </tr>
-
     `;
-
-    products.forEach((p,index)=>{
-
-        let value = p.Quantity * p.Price;
-
-        totalStock += p.Quantity;
-
-        totalValue += value;
+    history.forEach((item,hIndex)=>{
 
         html += `
-        
+
         <tr>
-        
-            <td>${index + 1}</td>
-            
-            <td>${p.Product}</td>
-            
-            <td>${p.Quantity}</td>
-            
-            <td>₹${p.Price}</td>
-            
-            <td>₹${value.toLocaleString()}</td>
-        
+
+            <td>${item.type}</td>
+            <td>${item.qty}</td>
+            <td>${item.narration}</td>
+            <td>${item.date}</td>
+            <td>
+              <button
+            onclick="window.opener.deleteEntry(${index},${hIndex})">
+             Delete
+                </button>
+            </td>
         </tr>
-        
+        `;
+    });
+    html += `
+    </table>
+    </body>
+    </html>
+    `;
+    win.document.write(html);
+}
+
+// ================= DELETE ENTRY =================
+
+function deleteEntry(productIndex,historyIndex){
+
+    let item =
+    products[productIndex]
+    .History[historyIndex];
+
+    if(item.type === "Issue"){
+
+        products[productIndex]
+        .Quantity += item.qty;
+    }else{
+        products[productIndex]
+        .Quantity -= item.qty;
+
+        if(products[productIndex]
+        .Quantity < 0){
+
+            products[productIndex]
+            .Quantity = 0;
+        }
+    }
+
+    products[productIndex]
+    .History
+    .splice(historyIndex,1);
+    saveData();
+    displayProducts();
+    alert("Entry Deleted");
+
+}
+
+// ================= DELETE PRODUCT =================
+
+function deleteProduct(index){
+
+    let ok =
+    confirm(
+    "Delete Product?"
+    );
+
+    if(!ok){
+        return;
+    }
+
+    products.splice(index,1);
+
+    saveData();
+
+    displayProducts();
+
+}
+
+// ================= CLEAR =================
+
+function clearAllData(){
+
+    let ok =
+    confirm(
+    "Delete All Data?"
+    );
+    if(!ok){
+        return;
+    }
+    localStorage.removeItem(
+    "inventoryProducts"
+    );
+
+    products = [];
+
+    filteredProducts = [];
+    displayProducts();
+    updateStatus();
+}
+
+// ================= MONTH OPTIONS =================
+
+function populateMonthOptions(){
+
+    let select =
+    document.getElementById(
+    "reportMonth"
+    );
+
+    let months = [
+
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+
+    ];
+
+    select.innerHTML =
+    `<option value="">
+    All Months
+    </option>`;
+
+    months.forEach((m,i)=>{
+
+        select.innerHTML += `
+
+        <option value="${i}">
+        ${m}
+        </option>
+
         `;
 
     });
 
-    html += `
-    
-    <tr style="font-weight:bold;background:#e8e8e8;">
-    
-        <td colspan="2">TOTAL</td>
-        
-        <td>${totalStock}</td>
-        
-        <td></td>
-        
-        <td>₹${totalValue.toLocaleString()}</td>
-    
+}
+
+// ================= MONTHLY REPORT =================
+
+function monthlyReport(){
+
+    let month =
+    document.getElementById(
+    "reportMonth"
+    ).value;
+
+    let report =
+    window.open(
+    "",
+    "",
+    "width=1000,height=600"
+    );
+    let html = `
+    <html>
+    <head>
+    <title>Monthly Report</title>
+    <style>
+    body{
+        font-family:Arial;
+        padding:20px;
+    }
+    table{
+        width:100%;
+        border-collapse:collapse;
+    }
+    th,td{
+        border:1px solid #ccc;
+        padding:10px;
+        text-align:center;
+    }
+
+    th{
+        background:#007bff;
+        color:white;
+    }
+   </style>
+    </head>
+    <body>
+    <h2>
+    Monthly Report
+    </h2>
+    <table>
+    <tr>
+
+        <th>Product</th>
+        <th>Total Issue</th>
+
     </tr>
 
-    </table>
-
-    </body>
-    
-    </html>
-    
     `;
 
-    summaryWindow.document.write(html);
+    products.forEach(product=>{
 
-    summaryWindow.document.close();
+        let total = 0;
+
+        product.History.forEach(item=>{
+
+            let d =
+            new Date(item.date);
+
+            if(
+                item.type === "Issue"
+            ){
+
+                if(
+                    month === ""
+                    ||
+                    d.getMonth()
+                    ==
+                    month
+                ){
+                    total += item.qty;
+                }
+            }
+        });
+        html += `
+        <tr>
+            <td>${product.Product}</td>
+            <td>${total}</td>
+      </tr>
+
+        `;
+    });
+    html += `
+    </table>
+    </body>
+    </html>
+    `;
+    report.document.write(html);
+}
+
+// ================= STOCK SUMMARY =================
+
+function stockSummary(){
+
+    let win =
+    window.open(
+    "",
+    "",
+    "width=1000,height=600"
+    );
+
+    let html = `
+    <html>
+    <head>
+    <title>Stock Summary</title>
+    <style>
+    body{
+        font-family:Arial;
+        padding:20px;
+    }
+    table{
+        width:100%;
+        border-collapse:collapse;
+    }
+    th,td{
+        border:1px solid #ccc;
+        padding:10px;
+        text-align:center;
+    }
+    th{
+        background:#007bff;
+        color:white;
+    }
+    </style>
+
+    </head>
+
+    <body>
+
+    <h2>
+    Stock Summary
+    </h2>
+
+    <table>
+
+    <tr>
+        <th>Product</th>
+        <th>Stock</th>
+        <th>Price</th>
+        <th>Value</th>
+    </tr>
+
+    `;
+
+    products.forEach(p=>{
+
+        html += `
+
+        <tr>
+
+            <td>${p.Product}</td>
+
+            <td>${p.Quantity}</td>
+
+            <td>₹${p.Price}</td>
+
+            <td>
+            ₹${(p.Quantity * p.Price)
+            .toLocaleString()}
+            </td>
+
+       </tr>
+        `;
+    });
+    html += `
+    </table>
+    </body>
+    </html>
+    `;
+    win.document.write(html);
 
 }
+
+</script>
+
+</body>
+
+</html>
