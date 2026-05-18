@@ -221,7 +221,33 @@ textarea{
 
 </div>
 
-<!-- CONTROLS -->
+<!-- CONTROLS --><!-- ADD PRODUCT -->
+
+<div class="controls">
+
+<input
+type="text"
+id="newProduct"
+placeholder="Product Name">
+
+<input
+type="number"
+id="newPrice"
+placeholder="Price">
+
+<input
+type="number"
+id="newStock"
+placeholder="Opening Stock">
+
+<button
+onclick="addProduct()">
+
+➕ Add Product
+
+</button>
+
+</div>
 
 <div class="controls">
 
@@ -318,7 +344,98 @@ placeholder="Enter narration..."></textarea>
 
 </div>
 
-<script>
+<script>// ================= ADD PRODUCT =================
+
+function addProduct(){
+
+    let productName =
+    document.getElementById("newProduct")
+    .value
+    .trim();
+
+    let price =
+    Number(
+    document.getElementById("newPrice")
+    .value
+    );
+
+    let stock =
+    Number(
+    document.getElementById("newStock")
+    .value
+    );
+
+    if(productName === ""){
+
+        alert("Enter Product Name");
+
+        return;
+
+    }
+
+    // Duplicate Check
+
+    let exists =
+    products.some(
+    p =>
+    p.Product.toLowerCase()
+    ===
+    productName.toLowerCase()
+    );
+
+    if(exists){
+
+        alert("Product Already Exists");
+
+        return;
+
+    }
+
+    // Add Product
+
+    products.push({
+
+        Product:productName,
+
+        Price:price || 0,
+
+        Quantity:stock || 0,
+
+        History:[
+
+            {
+
+                type:"Received",
+
+                qty:stock || 0,
+
+                narration:"Opening Stock",
+
+                date:
+                new Date()
+                .toLocaleString()
+
+            }
+
+        ]
+
+    });
+
+    saveData();
+
+    displayProducts();
+
+    // Clear Inputs
+
+    document.getElementById("newProduct").value = "";
+
+    document.getElementById("newPrice").value = "";
+
+    document.getElementById("newStock").value = "";
+
+    alert("✅ Product Added");
+
+}
 
 // ================= PRODUCTS =================
 
