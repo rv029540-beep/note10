@@ -279,6 +279,7 @@ onkeyup="searchProduct()">
 <th>Receive Qty</th>
 <th>Receive</th>
 <th>Ledger</th>
+<th>Edit</th>
 </tr>
 </thead>
 
@@ -392,6 +393,11 @@ function displayProducts(){
                 Ledger
                 </button>
             </td>
+           <td> 
+              <button class="btn-edit" onclick="editproduct(${originalIndex})">
+               Edit
+            </td>
+            </button>
         </tr>
         `;
     });
@@ -760,7 +766,34 @@ function downloadExcel(){
 
     XLSX.writeFile(wb,"Inventory.xlsx");
 }
+function editProduct(index){
 
+    let newName = prompt(
+        "Edit Product Name",
+        products[index].Product
+    );
+
+    if(newName === null || newName.trim() === ""){
+        return;
+    }
+
+    let newPrice = prompt(
+        "Edit Price",
+        products[index].Price
+    );
+
+    if(newPrice === null || newPrice === ""){
+        newPrice = 0;
+    }
+
+    products[index].Product = newName.trim();
+    products[index].Price = Number(newPrice);
+
+    saveData();
+    displayProducts();
+
+    alert("✅ Product Updated");
+}
 </script>
 
 </body>
