@@ -208,6 +208,9 @@ textarea{
     background:#e8e8e8 !important;
     font-weight:bold;
 }
+    .btn-edit{
+    background:#ff9800;
+}
 
 </style>
 </head>
@@ -393,12 +396,12 @@ function displayProducts(){
                 Ledger
                 </button>
             </td>
-           <td> 
-              <button class="btn-edit" onclick="editProduct(${originalIndex})">
-               Edit
-            </td>
-            </button>
-        </tr>
+           
+           <td>
+    <button class="btn-download" onclick="editProduct(${originalIndex})">
+        Edit
+    </button>
+</td>
         `;
     });
 
