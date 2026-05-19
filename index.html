@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -44,18 +45,14 @@ h1{
     gap:10px;
     justify-content:center;
     margin-bottom:20px;
-}
-
-#search,
-#searchOption,
-#reportMonth{
-    padding:12px;
-    border:1px solid #ccc;
-    border-radius:8px;
+    align-items:center;
 }
 
 #search{
     width:300px;
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:8px;
 }
 
 .file-upload label{
@@ -98,17 +95,6 @@ button{
     background:#dc3545;
 }
 
-.controls button{
-    height:45px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-
-.controls{
-    align-items:center;
-}
-
 .btn-report{
     background:red;
 }
@@ -117,8 +103,8 @@ button{
     background:#28a745;
 }
 
-.btn-add:hover{
-    background:#218838;
+.btn-edit{
+    background:#ff9800;
 }
 
 button:hover{
@@ -169,26 +155,10 @@ tr:nth-child(even){
     background:#f9f9f9;
 }
 
-.stock-zero{
-    background:#ffcccc !important;
-}
-
-.stock-low{
-    background:#fff3cd !important;
-}
-
 input[type="number"]{
     width:70px;
     padding:5px;
     text-align:center;
-}
-
-.report-section{
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    flex-wrap:wrap;
-    margin-top:20px;
 }
 
 textarea{
@@ -204,12 +174,30 @@ textarea{
     padding:30px;
 }
 
-.total-row{
-    background:#e8e8e8 !important;
-    font-weight:bold;
+.popup{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.5);
+    justify-content:center;
+    align-items:center;
+    z-index:999;
 }
-    .btn-edit{
-    background:#ff9800;
+
+.popup-box{
+    background:white;
+    padding:25px;
+    border-radius:10px;
+    width:350px;
+}
+
+.popup-box input{
+    width:100%;
+    padding:10px;
+    margin-bottom:10px;
 }
 
 </style>
@@ -265,8 +253,6 @@ onkeyup="searchProduct()">
 ➕ Add Product
 </button>
 
-
-
 </div>
 
 <table>
@@ -289,28 +275,46 @@ onkeyup="searchProduct()">
 <tbody id="tbody"></tbody>
 </table>
 
-
-
 <h2 style="margin-top:25px;">📝 Narration</h2>
 
 <textarea id="narration" placeholder="Enter narration..."></textarea>
 
 </div>
 
-<div id="addProductPopup" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:999;">
+<!-- Add Product Popup -->
 
-<div style="background:white;padding:25px;border-radius:10px;width:350px;">
+<div id="addProductPopup" class="popup">
 
-<h2>Add Product</h2><div id="editProductPopup" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:999;">
+<div class="popup-box">
 
-<div style="background:white;padding:25px;border-radius:10px;width:350px;">
+<h2>Add Product</h2>
+<br>
+
+<input type="text" id="newProduct" placeholder="Product Name">
+
+<input type="number" id="newPrice" placeholder="Price">
+
+<input type="number" id="newStock" placeholder="Opening Stock">
+
+<button class="btn-add" onclick="addProduct()">Save</button>
+
+<button class="btn-clear" onclick="closeAddProduct()">Cancel</button>
+
+</div>
+</div>
+
+<!-- Edit Product Popup -->
+
+<div id="editProductPopup" class="popup">
+
+<div class="popup-box">
 
 <h2>Edit Product</h2>
 <br>
 
-<input type="text" id="editProductName" placeholder="Product Name" style="width:100%;padding:10px;margin-bottom:10px;">
+<input type="text" id="editProductName" placeholder="Product Name">
 
-<input type="number" id="editProductPrice" placeholder="Price" style="width:100%;padding:10px;margin-bottom:15px;">
+<input type="number" id="editProductPrice" placeholder="Price">
 
 <button class="btn-add" onclick="saveEditProduct()">
 Update
@@ -322,25 +326,14 @@ Cancel
 
 </div>
 </div>
-<br>
-
-<input type="text" id="newProduct" placeholder="Product Name" style="width:100%;padding:10px;margin-bottom:10px;">
-
-<input type="number" id="newPrice" placeholder="Price" style="width:100%;padding:10px;margin-bottom:10px;">
-
-<input type="number" id="newStock" placeholder="Opening Stock" style="width:100%;padding:10px;margin-bottom:15px;">
-
-<button class="btn-add" onclick="addProduct()">Save</button>
-<button class="btn-clear" onclick="closeAddProduct()">Cancel</button>
-
-</div>
-</div>
 
 <script>
 
 let products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
+
 let filteredProducts = [...products];
-    let editindex=null;
+
+let editIndex = null;
 
 function init(){
     displayProducts();
@@ -368,12 +361,14 @@ function updateStatus(){
 
     document.getElementById("totalProducts").innerText = totalProducts;
     document.getElementById("totalStock").innerText = totalStock;
-    document.getElementById("totalValue").innerText = "₹" + totalValue.toLocaleString();
+    document.getElementById("totalValue").innerText =
+    "₹" + totalValue.toLocaleString();
 }
 
 function displayProducts(){
 
     let tbody = document.getElementById("tbody");
+
     let html = "";
 
     filteredProducts.forEach((item,index)=>{
@@ -386,47 +381,63 @@ function displayProducts(){
 
         html += `
         <tr>
-            <td>${index + 1}</td>
-            <td>${item.Product}</td>
-            <td>₹${item.Price}</td>
-            <td>${item.Quantity}</td>
-            <td>₹${value.toLocaleString()}</td>
 
-            <td>
-                <input type="number" id="issue${originalIndex}" placeholder="Qty">
-            </td>
+        <td>${index + 1}</td>
 
-            <td>
-                <button class="btn-issue" onclick="issueStock(${originalIndex})">
-                Issue
-                </button>
-            </td>
+        <td>${item.Product}</td>
 
-            <td>
-                <input type="number" id="receive${originalIndex}" placeholder="Qty">
-            </td>
+        <td>₹${item.Price}</td>
 
-            <td>
-                <button class="btn-receive" onclick="receiveStock(${originalIndex})">
-                Receive
-                </button>
-            </td>
+        <td>${item.Quantity}</td>
 
-            <td>
-                <button class="btn-ledger" onclick="showHistory(${originalIndex})">
-                Ledger
-                </button>
-            </td>
-           
-           <td>
-    <button class="btn-download" onclick="editProduct(${originalIndex})">
+        <td>₹${value.toLocaleString()}</td>
+
+        <td>
+        <input type="number"
+        id="issue${originalIndex}"
+        placeholder="Qty">
+        </td>
+
+        <td>
+        <button class="btn-issue"
+        onclick="issueStock(${originalIndex})">
+        Issue
+        </button>
+        </td>
+
+        <td>
+        <input type="number"
+        id="receive${originalIndex}"
+        placeholder="Qty">
+        </td>
+
+        <td>
+        <button class="btn-receive"
+        onclick="receiveStock(${originalIndex})">
+        Receive
+        </button>
+        </td>
+
+        <td>
+        <button class="btn-ledger"
+        onclick="showHistory(${originalIndex})">
+        Ledger
+        </button>
+        </td>
+
+        <td>
+        <button class="btn-edit"
+        onclick="editProduct(${originalIndex})">
         Edit
-    </button>
-</td>
+        </button>
+        </td>
+
+        </tr>
         `;
     });
 
     if(filteredProducts.length === 0){
+
         html = `
         <tr class="empty-row">
         <td colspan="11">No Products Found</td>
@@ -447,9 +458,14 @@ function closeAddProduct(){
 
 function addProduct(){
 
-    let productName = document.getElementById("newProduct").value.trim();
-    let price = Number(document.getElementById("newPrice").value);
-    let stock = Number(document.getElementById("newStock").value);
+    let productName =
+    document.getElementById("newProduct").value.trim();
+
+    let price =
+    Number(document.getElementById("newPrice").value);
+
+    let stock =
+    Number(document.getElementById("newStock").value);
 
     if(productName === ""){
         alert("Enter Product Name");
@@ -457,7 +473,8 @@ function addProduct(){
     }
 
     let exists = products.some(
-        p => p.Product.toLowerCase() === productName.toLowerCase()
+        p => p.Product.toLowerCase() ===
+        productName.toLowerCase()
     );
 
     if(exists){
@@ -466,9 +483,13 @@ function addProduct(){
     }
 
     products.push({
+
         Product:productName,
+
         Price:price || 0,
+
         Quantity:stock || 0,
+
         History:[
             {
                 type:"Received",
@@ -480,11 +501,15 @@ function addProduct(){
     });
 
     saveData();
+
     displayProducts();
+
     closeAddProduct();
 
     document.getElementById("newProduct").value = "";
+
     document.getElementById("newPrice").value = "";
+
     document.getElementById("newStock").value = "";
 
     alert("✅ Product Added Successfully");
@@ -492,8 +517,11 @@ function addProduct(){
 
 function issueStock(index){
 
-    let qty = Number(document.getElementById(`issue${index}`).value);
-    let narration = document.getElementById("narration").value;
+    let qty =
+    Number(document.getElementById(`issue${index}`).value);
+
+    let narration =
+    document.getElementById("narration").value;
 
     if(qty <= 0){
         alert("Invalid Quantity");
@@ -508,21 +536,30 @@ function issueStock(index){
     products[index].Quantity -= qty;
 
     products[index].History.push({
+
         type:"Issue",
+
         qty:qty,
+
         narration:narration || "Stock Issued",
+
         date:new Date().toLocaleString()
     });
 
     saveData();
+
     displayProducts();
+
     alert("Stock Issued");
 }
 
 function receiveStock(index){
 
-    let qty = Number(document.getElementById(`receive${index}`).value);
-    let narration = document.getElementById("narration").value;
+    let qty =
+    Number(document.getElementById(`receive${index}`).value);
+
+    let narration =
+    document.getElementById("narration").value;
 
     if(qty <= 0){
         alert("Invalid Quantity");
@@ -532,81 +569,85 @@ function receiveStock(index){
     products[index].Quantity += qty;
 
     products[index].History.push({
+
         type:"Received",
+
         qty:qty,
+
         narration:narration || "Stock Received",
+
         date:new Date().toLocaleString()
     });
 
     saveData();
+
     displayProducts();
+
     alert("Stock Received");
 }
 
 function searchProduct(){
 
-    let input = document.getElementById("search").value.toLowerCase();
+    let input =
+    document.getElementById("search").value.toLowerCase();
 
     filteredProducts = products.filter(product =>
+
         product.Product.toLowerCase().includes(input)
+
     );
 
     displayProducts();
 }
 
-function deleteProduct(index){
-
-    let ok = confirm("Delete Product?");
-
-    if(!ok){
-        return;
-    }
-
-    products.splice(index,1);
-    saveData();
-    displayProducts();
-}
-
-function clearAllData(){
-
-    let ok = confirm("Delete All Data?");
-
-    if(!ok){
-        return;
-    }
-
-    localStorage.removeItem("inventoryProducts");
-
-    products = [];
-    filteredProducts = [];
-
-    displayProducts();
-    updateStatus();
-}
-
 function showHistory(index){
 
     let product = products[index];
+
     let history = product.History || [];
 
     let win = window.open("","","width=1000,height=600");
 
     let html = `
     <html>
+
     <head>
+
     <title>Ledger</title>
+
     <style>
-    body{font-family:Arial;padding:20px;}
-    table{width:100%;border-collapse:collapse;}
-    th,td{border:1px solid #ccc;padding:10px;text-align:center;}
-    th{background:#007bff;color:white;}
+
+    body{
+    font-family:Arial;
+    padding:20px;
+    }
+
+    table{
+    width:100%;
+    border-collapse:collapse;
+    }
+
+    th,td{
+    border:1px solid #ccc;
+    padding:10px;
+    text-align:center;
+    }
+
+    th{
+    background:#007bff;
+    color:white;
+    }
+
     </style>
+
     </head>
+
     <body>
 
     <h2>Ledger - ${product.Product}</h2>
 
     <table>
+
     <tr>
     <th>Type</th>
     <th>Qty</th>
@@ -616,12 +657,18 @@ function showHistory(index){
     `;
 
     history.forEach(item=>{
+
         html += `
         <tr>
+
         <td>${item.type}</td>
+
         <td>${item.qty}</td>
+
         <td>${item.narration}</td>
+
         <td>${item.date}</td>
+
         </tr>
         `;
     });
@@ -633,11 +680,14 @@ function showHistory(index){
 
 function monthlyReport(){
 
-    let report = window.open("","","width=1000,height=600");
+    let report =
+    window.open("","","width=1000,height=600");
 
     let html = `
     <html>
+
     <head>
+
     <title>Monthly Report</title>
 
     <style>
@@ -664,6 +714,7 @@ function monthlyReport(){
     }
 
     </style>
+
     </head>
 
     <body>
@@ -697,22 +748,20 @@ function monthlyReport(){
             ){
                 totalIssue += item.qty;
             }
-
         });
-
-        // ONLY SHOW USED ITEMS
 
         if(totalIssue > 0){
 
             html += `
             <tr>
-                <td>${product.Product}</td>
-                <td>${totalIssue}</td>
+
+            <td>${product.Product}</td>
+
+            <td>${totalIssue}</td>
+
             </tr>
             `;
-
         }
-
     });
 
     html += `
@@ -724,11 +773,8 @@ function monthlyReport(){
     report.document.write(html);
 }
 
-function stockSummary(){
-    alert("Stock Summary Ready");
-}
-
-document.getElementById("excelFile").addEventListener("change", function(e){
+document.getElementById("excelFile")
+.addEventListener("change", function(e){
 
     let file = e.target.files[0];
 
@@ -740,33 +786,55 @@ document.getElementById("excelFile").addEventListener("change", function(e){
 
     reader.onload = function(event){
 
-        let data = new Uint8Array(event.target.result);
+        let data =
+        new Uint8Array(event.target.result);
 
-        let workbook = XLSX.read(data,{type:'array'});
+        let workbook =
+        XLSX.read(data,{type:'array'});
 
-        let sheet = workbook.Sheets[workbook.SheetNames[0]];
+        let sheet =
+        workbook.Sheets[workbook.SheetNames[0]];
 
-        let excelData = XLSX.utils.sheet_to_json(sheet);
+        let excelData =
+        XLSX.utils.sheet_to_json(sheet);
 
         excelData.forEach(row=>{
 
             products.push({
-                Product:row.Product || row.product || "No Name",
+
+                Product:
+                row.Product ||
+                row.product ||
+                "No Name",
+
                 Price:Number(row.Price || 0),
-                Quantity:Number(row.Stock || row.Quantity || 0),
+
+                Quantity:Number(
+                    row.Stock ||
+                    row.Quantity ||
+                    0
+                ),
+
                 History:[
                     {
                         type:"Received",
-                        qty:Number(row.Stock || row.Quantity || 0),
+
+                        qty:Number(
+                            row.Stock ||
+                            row.Quantity ||
+                            0
+                        ),
+
                         narration:"Excel Import",
+
                         date:new Date().toLocaleString()
                     }
                 ]
             });
-
         });
 
         saveData();
+
         displayProducts();
 
         alert("Excel Imported Successfully");
@@ -778,46 +846,80 @@ document.getElementById("excelFile").addEventListener("change", function(e){
 function downloadExcel(){
 
     let exportData = products.map(p=>({
+
         Product:p.Product,
+
         Price:p.Price,
+
         Stock:p.Quantity
     }));
 
-    let ws = XLSX.utils.json_to_sheet(exportData);
-    let wb = XLSX.utils.book_new();
+    let ws =
+    XLSX.utils.json_to_sheet(exportData);
 
-    XLSX.utils.book_append_sheet(wb,ws,"Inventory");
+    let wb =
+    XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+        wb,
+        ws,
+        "Inventory"
+    );
 
     XLSX.writeFile(wb,"Inventory.xlsx");
 }
+
 function editProduct(index){
 
-    let newName = prompt(
-        "Edit Product Name",
-        products[index].Product
-    );
+    editIndex = index;
 
-    if(newName === null || newName.trim() === ""){
+    document.getElementById("editProductName").value =
+    products[index].Product;
+
+    document.getElementById("editProductPrice").value =
+    products[index].Price;
+
+    document.getElementById("editProductPopup").style.display =
+    "flex";
+}
+
+function closeEditProduct(){
+
+    document.getElementById("editProductPopup").style.display =
+    "none";
+}
+
+function saveEditProduct(){
+
+    let newName =
+    document.getElementById("editProductName")
+    .value.trim();
+
+    let newPrice =
+    document.getElementById("editProductPrice")
+    .value;
+
+    if(newName === ""){
+
+        alert("Enter Product Name");
+
         return;
     }
 
-    let newPrice = prompt(
-        "Edit Price",
-        products[index].Price
-    );
+    products[editIndex].Product = newName;
 
-    if(newPrice === null || newPrice === ""){
-        newPrice = 0;
-    }
-
-    products[index].Product = newName.trim();
-    products[index].Price = Number(newPrice);
+    products[editIndex].Price =
+    Number(newPrice || 0);
 
     saveData();
+
     displayProducts();
+
+    closeEditProduct();
 
     alert("✅ Product Updated");
 }
+
 </script>
 
 </body>
