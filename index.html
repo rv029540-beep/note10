@@ -706,6 +706,356 @@ function deleteProduct(index){
 
     displayProducts();
 }
+    function editProduct(index){
+
+    editIndex = index;
+
+    document.getElementById("editProductName").value =
+    products[index].Product;
+
+    document.getElementById("editCategory").value =
+    products[index].Category || "";
+
+    document.getElementById("editGST").value =
+    products[index].GST || 0;
+
+    document.getElementById("editProductPrice").value =
+    products[index].Price || 0;
+
+    document.getElementById(
+        "editProductPopup"
+    ).style.display = "flex";
+}
+
+function closeEditProduct(){
+
+    document.getElementById(
+        "editProductPopup"
+    ).style.display = "none";
+}
+
+function saveEditProduct(){
+
+    products[editIndex].Product =
+    document.getElementById(
+        "editProductName"
+    ).value.trim();
+
+    products[editIndex].Category =
+    document.getElementById(
+        "editCategory"
+    ).value.trim();
+
+    products[editIndex].GST =
+    Number(
+        document.getElementById(
+            "editGST"
+        ).value
+    ) || 0;
+
+    products[editIndex].Price =
+    Number(
+        document.getElementById(
+            "editProductPrice"
+        ).value
+    ) || 0;
+
+    saveData();
+
+    displayProducts();
+
+    closeEditProduct();
+
+    alert("Product Updated");
+}
+
+function issueStock(index){
+
+    let qty = Number(
+        prompt("Issue Quantity")
+    );
+
+    if(!qty || qty <= 0) return;
+
+    if(qty > products[index].Quantity){
+
+        alert("Low Stock");
+
+        return;
+    }
+
+    products[index].Quantity -= qty;
+
+    products[index].History.push({
+
+        type:"Issue",
+
+        qty:qty,
+
+        narration:
+        document.getElementById(
+            "narration"
+        ).value || "Stock Issued",
+
+        date:new Date()
+        .toLocaleString()
+    });
+
+    saveData();
+
+    displayProducts();
+}
+
+function receiveStock(index){
+
+    let qty = Number(
+        prompt("Receive Quantity")
+    );
+
+    if(!qty || qty <= 0) return;
+
+    products[index].Quantity += qty;
+
+    products[index].History.push({
+
+        type:"Receive",
+
+        qty:qty,
+
+        narration:
+        document.getElementById(
+            "narration"
+        ).value || "Stock Received",
+
+        date:new Date()
+        .toLocaleString()
+    });
+
+    saveData();
+
+    displayProducts();
+}
+
+function showHistory(index){
+
+    let product =
+    products[index];
+
+    let history =
+    product.History || [];
+
+    let html = `
+    <h2>${product.Product}</h2>
+
+    <table border="1"
+    width="100%"
+    cellpadding="10">
+
+    <tr>
+
+    <th>Type</th>
+
+    <th>Qty</th>
+
+    <th>Narration</th>
+
+    <th>Date</th>
+
+    </tr>
+    `;
+
+    history.forEach(item=>{
+
+        html += `
+        <tr>
+
+        <td>${item.type}</td>
+
+        <td>${item.qty}</td>
+
+        <td>${item.narration}</td>
+
+        <td>${item.date}</td>
+
+        </tr>
+        `;
+    });
+
+    html += "</table>";
+
+    let win =
+    window.open(
+        "",
+        "",
+        "width=1000,height=600"
+    );
+
+    win.document.write(html);
+}
+
+document.getElementById("excelFile")
+.addEventListener("change",function(e){
+
+    let file =
+    e.target.files[0];
+
+    if(!file) return;
+
+    let reader =
+    new FileReader();
+
+    reader.onload =
+    function(event){
+
+        let data =
+        new Uint8Array(
+            event.target.result
+        );
+
+        let workbook =
+        XLSX.read(
+            data,
+            {type:'array'}
+        );
+
+        let sheet =
+        workbook.Sheets[
+            workbook.SheetNames[0]
+        ];
+
+        let rows =
+        XLSX.utils.sheet_to_json(
+            sheet,
+            {header:1}
+        );
+
+        for(
+            let i=1;
+            i<rows.length;
+            i++
+        ){
+
+            let row = rows[i];
+
+            if(!row) continue;
+
+            let product =
+            String(
+                row[0] || ""
+            ).trim();
+
+            let qty =
+            Number(row[1] || 0);
+
+            let price =
+            Number(row[2] || 0);
+
+            if(product==="")
+            continue;
+
+            let existing =
+            products.find(
+                p =>
+                p.Product.toLowerCase()
+                ===
+                product.toLowerCase()
+            );
+
+            if(existing){
+
+                existing.Quantity =
+                qty;
+
+                existing.Price =
+                price;
+
+            }else{
+
+                products.push({
+
+                    Product:product,
+
+                    Category:"General",
+
+                    GST:18,
+
+                    Price:price,
+
+                    Quantity:qty,
+
+                    History:[]
+                });
+            }
+        }
+
+        saveData();
+
+        displayProducts();
+
+        alert(
+            "Excel Imported Successfully"
+        );
+    };
+
+    reader.readAsArrayBuffer(file);
+});
+
+function downloadExcel(){
+
+    let exportData =
+    products.map(p=>({
+
+        Product:p.Product,
+
+        Category:p.Category,
+
+        GST:p.GST,
+
+        Rate:p.Price,
+
+        Quantity:p.Quantity
+    }));
+
+    let ws =
+    XLSX.utils.json_to_sheet(
+        exportData
+    );
+
+    let wb =
+    XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+        wb,
+        ws,
+        "Inventory"
+    );
+
+    XLSX.writeFile(
+        wb,
+        "Inventory.xlsx"
+    );
+}
+
+function monthlyReport(){
+
+    let report =
+    products.map(p=>({
+
+        Product:p.Product,
+
+        Stock:p.Quantity,
+
+        Value:
+        p.Quantity *
+        p.Price
+    }));
+
+    console.table(report);
+
+    alert(
+        "Monthly Report Generated"
+    );
+}
 
 </script>
 
