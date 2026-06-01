@@ -1,3 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Inventory Software</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
 *{
     margin:0;
     padding:0;
@@ -217,7 +230,15 @@ textarea{
     .status-item{
         width:100%;
     }
-}<div class="box">
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
 
     <h1>📦 Inventory Management Software Pro</h1>
 
@@ -369,3 +390,325 @@ textarea{
     id="narration"
     placeholder="Enter narration here...">
 </textarea>
+
+<script>
+
+let products =
+JSON.parse(
+localStorage.getItem("inventoryProducts")
+) || [];
+
+let filteredProducts = [...products];
+
+let editIndex = null;
+
+const LOW_STOCK_LIMIT = 10;
+
+init();
+
+function init(){
+
+    displayProducts();
+
+    updateStatus();
+}
+
+function saveData(){
+
+    localStorage.setItem(
+        "inventoryProducts",
+        JSON.stringify(products)
+    );
+
+    filteredProducts = [...products];
+
+    updateStatus();
+}
+
+function updateStatus(){
+
+    let totalProducts = products.length;
+
+    let totalStock = 0;
+
+    let totalValue = 0;
+
+    let lowStock = 0;
+
+    products.forEach(p=>{
+
+        totalStock += Number(p.Quantity);
+
+        totalValue +=
+        Number(p.Quantity) *
+        Number(p.Price);
+
+        if(Number(p.Quantity) <= LOW_STOCK_LIMIT){
+
+            lowStock++;
+        }
+
+    });
+
+    document.getElementById(
+        "totalProducts"
+    ).innerText = totalProducts;
+
+    document.getElementById(
+        "totalStock"
+    ).innerText = totalStock;
+
+    document.getElementById(
+        "totalValue"
+    ).innerText =
+    "₹" + totalValue.toLocaleString();
+
+    document.getElementById(
+        "lowStockCount"
+    ).innerText = lowStock;
+}
+
+function displayProducts(){
+
+    let tbody =
+    document.getElementById("tbody");
+
+    let html = "";
+
+    filteredProducts.forEach(
+    (item,index)=>{
+
+        let value =
+        item.Quantity * item.Price;
+
+        let status =
+        item.Quantity <= LOW_STOCK_LIMIT
+        ? "⚠ Low Stock"
+        : "✅ OK";
+
+        let rowClass =
+        item.Quantity <= LOW_STOCK_LIMIT
+        ? "low-stock"
+        : "good-stock";
+
+        let originalIndex =
+        products.findIndex(
+            p => p.Product === item.Product
+        );
+
+        html += `
+        <tr class="${rowClass}">
+
+            <td>${index+1}</td>
+
+            <td>${item.Product}</td>
+
+            <td>${item.Category || "-"}</td>
+
+            <td>${item.GST || 0}%</td>
+
+            <td>₹${item.Price}</td>
+
+            <td>${item.Quantity}</td>
+
+            <td>
+                ₹${value.toLocaleString()}
+            </td>
+
+            <td>${status}</td>
+
+            <td>
+                <button
+                class="btn-issue"
+                onclick="issueStock(${originalIndex})">
+                Issue
+                </button>
+            </td>
+
+            <td>
+                <button
+                class="btn-receive"
+                onclick="receiveStock(${originalIndex})">
+                Receive
+                </button>
+            </td>
+
+            <td>
+                <button
+                class="btn-ledger"
+                onclick="showHistory(${originalIndex})">
+                Ledger
+                </button>
+            </td>
+
+            <td>
+                <button
+                class="btn-edit"
+                onclick="editProduct(${originalIndex})">
+                Edit
+                </button>
+            </td>
+
+            <td>
+                <button
+                class="btn-delete"
+                onclick="deleteProduct(${originalIndex})">
+                Delete
+                </button>
+            </td>
+
+        </tr>
+        `;
+    });
+
+    if(filteredProducts.length===0){
+
+        html=`
+        <tr>
+        <td colspan="13">
+        No Products Found
+        </td>
+        </tr>`;
+    }
+
+    tbody.innerHTML = html;
+}
+
+function searchProduct(){
+
+    let input =
+    document.getElementById("search")
+    .value
+    .toLowerCase();
+
+    filteredProducts =
+    products.filter(item=>
+
+        item.Product
+        .toLowerCase()
+        .includes(input)
+
+    );
+
+    displayProducts();
+}
+
+function openAddProduct(){
+
+    document.getElementById(
+        "addProductPopup"
+    ).style.display="flex";
+}
+
+function closeAddProduct(){
+
+    document.getElementById(
+        "addProductPopup"
+    ).style.display="none";
+}
+
+function addProduct(){
+
+    let product =
+    document.getElementById(
+        "newProduct"
+    ).value.trim();
+
+    let category =
+    document.getElementById(
+        "newCategory"
+    ).value.trim();
+
+    let gst =
+    Number(
+    document.getElementById(
+        "newGST"
+    ).value) || 0;
+
+    let price =
+    Number(
+    document.getElementById(
+        "newPrice"
+    ).value) || 0;
+
+    let stock =
+    Number(
+    document.getElementById(
+        "newStock"
+    ).value) || 0;
+
+    if(product===""){
+
+        alert("Enter Product Name");
+
+        return;
+    }
+
+    let exists =
+    products.some(
+        p =>
+        p.Product.toLowerCase() ===
+        product.toLowerCase()
+    );
+
+    if(exists){
+
+        alert(
+        "Product Already Exists"
+        );
+
+        return;
+    }
+
+    products.push({
+
+        Product:product,
+
+        Category:category,
+
+        GST:gst,
+
+        Price:price,
+
+        Quantity:stock,
+
+        History:[{
+            type:"Opening",
+            qty:stock,
+            narration:"Opening Stock",
+            date:new Date()
+            .toLocaleString()
+        }]
+    });
+
+    saveData();
+
+    displayProducts();
+
+    closeAddProduct();
+
+    alert(
+    "Product Added Successfully"
+    );
+}
+
+function deleteProduct(index){
+
+    if(
+        !confirm(
+        "Delete Product?"
+        )
+    ) return;
+
+    products.splice(index,1);
+
+    saveData();
+
+    displayProducts();
+}
+
+</script>
+
+</body>
+
+</html>
