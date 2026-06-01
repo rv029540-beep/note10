@@ -1,943 +1,152 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Inventory Software</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-<style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-    font-family:Arial;
-    background:#f0f2f5;
-    padding:20px;
-}
-
-.box{
-    max-width:1400px;
-    margin:auto;
-    background:#fff;
-    padding:25px;
-    border-radius:15px;
-    box-shadow:0 5px 20px rgba(0,0,0,0.1);
-}
-
-h1,h2{
-    text-align:center;
-}
-
-h1{
-    color:#007bff;
-    margin-bottom:20px;
-}
-
-.controls{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    justify-content:center;
-    margin-bottom:20px;
-    align-items:center;
-}
-
-#search{
-    width:300px;
-    padding:12px;
-    border:1px solid #ccc;
-    border-radius:8px;
-}
-
-.file-upload label{
-    background:#007bff;
-    color:white;
-    padding:12px 20px;
-    border-radius:8px;
-    cursor:pointer;
-}
-
-.file-upload input{
-    display:none;
-}
-
-button{
-    padding:10px 15px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    color:white;
-}
-
-.btn-issue{
-    background:#dc3545;
-}
-
-.btn-receive{
-    background:#28a745;
-}
-
-.btn-ledger{
-    background:#17a2b8;
-}
-
-.btn-download{
-    background:#6f42c1;
-}
-
-.btn-clear{
-    background:#dc3545;
-}
-
-.btn-report{
-    background:red;
-}
-
-.btn-add{
-    background:#28a745;
-}
-
-.btn-edit{
-    background:#ff9800;
-}
-
-button:hover{
-    opacity:0.9;
-}
-
-.status-bar{
-    display:flex;
-    justify-content:space-around;
-    flex-wrap:wrap;
-    gap:15px;
-    margin-bottom:20px;
-}
-
-.status-item{
-    background:#f8f9fa;
-    padding:15px;
-    border-radius:10px;
-    min-width:180px;
-    text-align:center;
-}
-
-.status-item span{
-    display:block;
-    font-size:25px;
-    font-weight:bold;
-    color:#007bff;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:20px;
-}
-
-th,td{
-    border:1px solid #ccc;
-    padding:10px;
-    text-align:center;
-}
-
-th{
-    background:#007bff;
-    color:white;
-}
-
-tr:nth-child(even){
-    background:#f9f9f9;
-}
-
-input[type="number"]{
-    width:70px;
-    padding:5px;
-    text-align:center;
-}
-
-textarea{
-    width:100%;
-    height:80px;
-    padding:10px;
-    margin-top:15px;
-    border:1px solid #ccc;
-    border-radius:8px;
-}
-
-.empty-row td{
-    padding:30px;
-}
-
-.popup{
-    display:none;
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.5);
-    justify-content:center;
-    align-items:center;
-    z-index:999;
-}
-
-.popup-box{
-    background:white;
-    padding:25px;
-    border-radius:10px;
-    width:350px;
-}
-
-.popup-box input{
-    width:100%;
-    padding:10px;
-    margin-bottom:10px;
-}
-
-</style>
-</head>
-
-<body>
-
 <div class="box">
 
-<h1>📦 Inventory Software</h1>
+    <h1>📦 Inventory Management Software Pro</h1>
 
-<div class="status-bar">
+    <div class="status-bar">
 
-<div class="status-item">
-<span id="totalProducts">0</span>
-<label>Total Products</label>
+        <div class="status-item">
+            <span id="totalProducts">0</span>
+            <label>Total Products</label>
+        </div>
+
+        <div class="status-item">
+            <span id="totalStock">0</span>
+            <label>Total Stock</label>
+        </div>
+
+        <div class="status-item">
+            <span id="totalValue">₹0</span>
+            <label>Total Value</label>
+        </div>
+
+        <div class="status-item">
+            <span id="lowStockCount">0</span>
+            <label>Low Stock Items</label>
+        </div>
+
+    </div>
+
+    <div class="controls">
+
+        <button class="btn-report" onclick="monthlyReport()">
+            📊 Monthly Report
+        </button>
+
+        <button class="btn-download" onclick="downloadExcel()">
+            📥 Export Excel
+        </button>
+
+        <button class="btn-add" onclick="openAddProduct()">
+            ➕ Add Product
+        </button>
+
+        <input
+            type="text"
+            id="search"
+            placeholder="Search Product..."
+            onkeyup="searchProduct()">
+
+        <div class="file-upload">
+            <label for="excelFile">📤 Import Excel</label>
+            <input type="file" id="excelFile" accept=".xlsx,.xls">
+        </div>
+
+    </div>
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>S.No</th>
+                <th>Product</th>
+                <th>Category</th>
+                <th>GST %</th>
+                <th>Rate</th>
+                <th>Stock</th>
+                <th>Value</th>
+                <th>Status</th>
+                <th>Issue</th>
+                <th>Receive</th>
+                <th>Ledger</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+
+        </thead>
+
+        <tbody id="tbody"></tbody>
+
+    </table>
+
 </div>
 
-<div class="status-item">
-<span id="totalStock">0</span>
-<label>Total Stock</label>
-</div>
-
-<div class="status-item">
-<span id="totalValue">₹0</span>
-<label>Total Value</label>
-</div>
-
-</div>
-
-<div class="controls">
-
-<button class="btn-report" onclick="monthlyReport()">
-📊 Monthly Report
-</button>
-
-<input
-type="text"
-id="search"
-placeholder="Search Product"
-onkeyup="searchProduct()">
-
-<div class="file-upload">
-<label for="excelFile">📤 Upload Excel</label>
-<input type="file" id="excelFile" accept=".xlsx,.xls">
-</div>
-
-<button class="btn-download" onclick="downloadExcel()">
-📥 Download Excel
-</button>
-
-<button class="btn-add" onclick="openAddProduct()">
-➕ Add Product
-</button>
-
-</div>
-
-<table>
-<thead>
-<tr>
-<th>S.No</th>
-<th>Product</th>
-<th>Price</th>
-<th>Stock</th>
-<th>Value</th>
-<th>Issue Qty</th>
-<th>Issue</th>
-<th>Receive Qty</th>
-<th>Receive</th>
-<th>Ledger</th>
-<th>Edit</th>
-</tr>
-</thead>
-
-<tbody id="tbody"></tbody>
-</table>
-
-<h2 style="margin-top:25px;">📝 Narration</h2>
-
-<textarea id="narration" placeholder="Enter narration..."></textarea>
-
-</div>
 
 <!-- Add Product Popup -->
 
 <div id="addProductPopup" class="popup">
 
-<div class="popup-box">
+    <div class="popup-box">
 
-<h2>Add Product</h2>
-<br>
+        <h2>Add Product</h2>
 
-<input type="text" id="newProduct" placeholder="Product Name">
+        <input type="text" id="newProduct" placeholder="Product Name">
 
-<input type="number" id="newPrice" placeholder="Price">
+        <input type="text" id="newCategory" placeholder="Category">
 
-<input type="number" id="newStock" placeholder="Opening Stock">
+        <input type="number" id="newGST" placeholder="GST %">
 
-<button class="btn-add" onclick="addProduct()">Save</button>
+        <input type="number" id="newPrice" placeholder="Rate">
 
-<button class="btn-clear" onclick="closeAddProduct()">Cancel</button>
+        <input type="number" id="newStock" placeholder="Opening Stock">
+
+        <button class="btn-add" onclick="addProduct()">
+            Save
+        </button>
+
+        <button class="btn-clear" onclick="closeAddProduct()">
+            Cancel
+        </button>
+
+    </div>
 
 </div>
-</div>
 
-<!-- Edit Product Popup -->
+
+<!-- Edit Popup -->
 
 <div id="editProductPopup" class="popup">
 
-<div class="popup-box">
+    <div class="popup-box">
 
-<h2>Edit Product</h2>
-<br>
+        <h2>Edit Product</h2>
 
-<input type="text" id="editProductName" placeholder="Product Name">
+        <input type="text" id="editProductName">
 
-<input type="number" id="editProductPrice" placeholder="Price">
+        <input type="text" id="editCategory">
 
-<button class="btn-add" onclick="saveEditProduct()">
-Update
-</button>
+        <input type="number" id="editGST">
 
-<button class="btn-clear" onclick="closeEditProduct()">
-Cancel
-</button>
+        <input type="number" id="editProductPrice">
+
+        <button class="btn-add" onclick="saveEditProduct()">
+            Update
+        </button>
+
+        <button class="btn-clear" onclick="closeEditProduct()">
+            Cancel
+        </button>
+
+    </div>
 
 </div>
-</div>
 
-<script>
 
-let products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
+<h2 style="margin-top:20px;">
+    📝 Narration
+</h2>
 
-let filteredProducts = [...products];
-
-let editIndex = null;
-
-function init(){
-    displayProducts();
-    updateStatus();
-}
-
-init();
-
-function saveData(){
-    localStorage.setItem("inventoryProducts",JSON.stringify(products));
-    filteredProducts = [...products];
-    updateStatus();
-}
-
-function updateStatus(){
-
-    let totalProducts = products.length;
-    let totalStock = 0;
-    let totalValue = 0;
-
-    products.forEach(p=>{
-        totalStock += p.Quantity;
-        totalValue += p.Quantity * p.Price;
-    });
-
-    document.getElementById("totalProducts").innerText = totalProducts;
-    document.getElementById("totalStock").innerText = totalStock;
-    document.getElementById("totalValue").innerText =
-    "₹" + totalValue.toLocaleString();
-}
-
-function displayProducts(){
-
-    let tbody = document.getElementById("tbody");
-
-    let html = "";
-
-    filteredProducts.forEach((item,index)=>{
-
-        let value = item.Quantity * item.Price;
-
-        let originalIndex = products.findIndex(
-            p => p.Product === item.Product
-        );
-
-        html += `
-        <tr>
-
-        <td>${index + 1}</td>
-
-        <td>${item.Product}</td>
-
-        <td>₹${item.Price}</td>
-
-        <td>${item.Quantity}</td>
-
-        <td>₹${value.toLocaleString()}</td>
-
-        <td>
-        <input type="number"
-        id="issue${originalIndex}"
-        placeholder="Qty">
-        </td>
-
-        <td>
-        <button class="btn-issue"
-        onclick="issueStock(${originalIndex})">
-        Issue
-        </button>
-        </td>
-
-        <td>
-        <input type="number"
-        id="receive${originalIndex}"
-        placeholder="Qty">
-        </td>
-
-        <td>
-        <button class="btn-receive"
-        onclick="receiveStock(${originalIndex})">
-        Receive
-        </button>
-        </td>
-
-        <td>
-        <button class="btn-ledger"
-        onclick="showHistory(${originalIndex})">
-        Ledger
-        </button>
-        </td>
-
-        <td>
-        <button class="btn-edit"
-        onclick="editProduct(${originalIndex})">
-        Edit
-        </button>
-        </td>
-
-        </tr>
-        `;
-    });
-
-    if(filteredProducts.length === 0){
-
-        html = `
-        <tr class="empty-row">
-        <td colspan="11">No Products Found</td>
-        </tr>
-        `;
-    }
-
-    tbody.innerHTML = html;
-}
-
-function openAddProduct(){
-    document.getElementById("addProductPopup").style.display = "flex";
-}
-
-function closeAddProduct(){
-    document.getElementById("addProductPopup").style.display = "none";
-}
-
-function addProduct(){
-
-    let productName =
-    document.getElementById("newProduct").value.trim();
-
-    let price =
-    Number(document.getElementById("newPrice").value);
-
-    let stock =
-    Number(document.getElementById("newStock").value);
-
-    if(productName === ""){
-        alert("Enter Product Name");
-        return;
-    }
-
-    let exists = products.some(
-        p => p.Product.toLowerCase() ===
-        productName.toLowerCase()
-    );
-
-    if(exists){
-        alert("Product Already Exists");
-        return;
-    }
-
-    products.push({
-
-        Product:productName,
-
-        Price:price || 0,
-
-        Quantity:stock || 0,
-
-        History:[
-            {
-                type:"Received",
-                qty:stock || 0,
-                narration:"Opening Stock",
-                date:new Date().toLocaleString()
-            }
-        ]
-    });
-
-    saveData();
-
-    displayProducts();
-
-    closeAddProduct();
-
-    document.getElementById("newProduct").value = "";
-
-    document.getElementById("newPrice").value = "";
-
-    document.getElementById("newStock").value = "";
-
-    alert("✅ Product Added Successfully");
-}
-
-function issueStock(index){
-
-    let qty =
-    Number(document.getElementById(`issue${index}`).value);
-
-    let narration =
-    document.getElementById("narration").value;
-
-    if(qty <= 0){
-        alert("Invalid Quantity");
-        return;
-    }
-
-    if(qty > products[index].Quantity){
-        alert("Low Stock");
-        return;
-    }
-
-    products[index].Quantity -= qty;
-
-    products[index].History.push({
-
-        type:"Issue",
-
-        qty:qty,
-
-        narration:narration || "Stock Issued",
-
-        date:new Date().toLocaleString()
-    });
-
-    saveData();
-
-    displayProducts();
-
-    alert("Stock Issued");
-}
-
-function receiveStock(index){
-
-    let qty =
-    Number(document.getElementById(`receive${index}`).value);
-
-    let narration =
-    document.getElementById("narration").value;
-
-    if(qty <= 0){
-        alert("Invalid Quantity");
-        return;
-    }
-
-    products[index].Quantity += qty;
-
-    products[index].History.push({
-
-        type:"Received",
-
-        qty:qty,
-
-        narration:narration || "Stock Received",
-
-        date:new Date().toLocaleString()
-    });
-
-    saveData();
-
-    displayProducts();
-
-    alert("Stock Received");
-}
-
-function searchProduct(){
-
-    let input =
-    document.getElementById("search").value.toLowerCase();
-
-    filteredProducts = products.filter(product =>
-
-        product.Product.toLowerCase().includes(input)
-
-    );
-
-    displayProducts();
-}
-
-function showHistory(index){
-
-    let product = products[index];
-
-    let history = product.History || [];
-
-    let win = window.open("","","width=1000,height=600");
-
-    let html = `
-    <html>
-
-    <head>
-
-    <title>Ledger</title>
-
-    <style>
-
-    body{
-    font-family:Arial;
-    padding:20px;
-    }
-
-    table{
-    width:100%;
-    border-collapse:collapse;
-    }
-
-    th,td{
-    border:1px solid #ccc;
-    padding:10px;
-    text-align:center;
-    }
-
-    th{
-    background:#007bff;
-    color:white;
-    }
-
-    </style>
-
-    </head>
-
-    <body>
-
-    <h2>Ledger - ${product.Product}</h2>
-
-    <table>
-
-    <tr>
-    <th>Type</th>
-    <th>Qty</th>
-    <th>Narration</th>
-    <th>Date</th>
-    </tr>
-    `;
-
-    history.forEach(item=>{
-
-        html += `
-        <tr>
-
-        <td>${item.type}</td>
-
-        <td>${item.qty}</td>
-
-        <td>${item.narration}</td>
-
-        <td>${item.date}</td>
-
-        </tr>
-        `;
-    });
-
-    html += `</table></body></html>`;
-
-    win.document.write(html);
-}
-
-function monthlyReport(){
-
-    let report =
-    window.open("","","width=1000,height=600");
-
-    let html = `
-    <html>
-
-    <head>
-
-    <title>Monthly Report</title>
-
-    <style>
-
-    body{
-        font-family:Arial;
-        padding:20px;
-    }
-
-    table{
-        width:100%;
-        border-collapse:collapse;
-    }
-
-    th,td{
-        border:1px solid #ccc;
-        padding:10px;
-        text-align:center;
-    }
-
-    th{
-        background:red;
-        color:white;
-    }
-
-    </style>
-
-    </head>
-
-    <body>
-
-    <h2>📊 Monthly Used Items Report</h2>
-
-    <table>
-
-    <tr>
-        <th>Product</th>
-        <th>Total Used</th>
-    </tr>
-    `;
-
-    let now = new Date();
-
-    products.forEach(product=>{
-
-        let totalIssue = 0;
-
-        product.History.forEach(item=>{
-
-            let itemDate = new Date(item.date);
-
-            if(
-                item.type === "Issue"
-                &&
-                itemDate.getMonth() === now.getMonth()
-                &&
-                itemDate.getFullYear() === now.getFullYear()
-            ){
-                totalIssue += item.qty;
-            }
-        });
-
-        if(totalIssue > 0){
-
-            html += `
-            <tr>
-
-            <td>${product.Product}</td>
-
-            <td>${totalIssue}</td>
-
-            </tr>
-            `;
-        }
-    });
-
-    html += `
-    </table>
-    </body>
-    </html>
-    `;
-
-    report.document.write(html);
-}
-
-document.getElementById("excelFile")
-.addEventListener("change", function(e){
-
-    let file = e.target.files[0];
-
-    if(!file){
-        return;
-    }
-
-    let reader = new FileReader();
-
-    reader.onload = function(event){
-
-        let data =
-        new Uint8Array(event.target.result);
-
-        let workbook =
-        XLSX.read(data,{type:'array'});
-
-        let sheet =
-        workbook.Sheets[workbook.SheetNames[0]];
-
-        let excelData =
-        XLSX.utils.sheet_to_json(sheet);
-
-       excelData.forEach(row => {
-
-    let productName =
-        row.Product ||
-        row.product ||
-        row.Particulars ||
-        row.Item ||
-        row["Item Name"] ||
-        "No Name";
-
-    let price = Number(
-        row.Price ||
-        row.Rate ||
-        0
-    );
-
-    let qty = Number(
-        row.Stock ||
-        row.Quantity ||
-        0
-    );
-
-    let existingProduct = products.find(
-        p => p.Product.toLowerCase() ===
-        productName.toLowerCase()
-    );
-
-    if(existingProduct){
-
-        existingProduct.Price = price;
-        existingProduct.Quantity = qty;
-
-        existingProduct.History.push({
-            type:"Received",
-            qty:qty,
-            narration:"Excel Update",
-            date:new Date().toLocaleString()
-        });
-
-    }else{
-
-        products.push({
-
-            Product: productName,
-            Price: price,
-            Quantity: qty,
-
-            History:[
-                {
-                    type:"Received",
-                    qty: qty,
-                    narration:"Excel Import",
-                    date:new Date().toLocaleString()
-                }
-            ]
-        });
-    }
-});
-
-saveData();
-displayProducts();
-alert("Excel Imported Successfully");
-function downloadExcel(){
-
-    let exportData = products.map(p=>({
-
-        Product:p.Product,
-
-        Price:p.Price,
-
-        Stock:p.Quantity
-    }));
-
-    let ws =
-    XLSX.utils.json_to_sheet(exportData);
-
-    let wb =
-    XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(
-        wb,
-        ws,
-        "Inventory"
-    );
-
-    XLSX.writeFile(wb,"Inventory.xlsx");
-}
-
-function editProduct(index){
-
-    editIndex = index;
-
-    document.getElementById("editProductName").value =
-    products[index].Product;
-
-    document.getElementById("editProductPrice").value =
-    products[index].Price;
-
-    document.getElementById("editProductPopup").style.display =
-    "flex";
-}
-
-function closeEditProduct(){
-
-    document.getElementById("editProductPopup").style.display =
-    "none";
-}
-
-function saveEditProduct(){
-
-    let newName =
-    document.getElementById("editProductName")
-    .value.trim();
-
-    let newPrice =
-    document.getElementById("editProductPrice")
-    .value;
-
-    if(newName === ""){
-
-        alert("Enter Product Name");
-
-        return;
-    }
-
-    products[editIndex].Product = newName;
-
-    products[editIndex].Price =
-    Number(newPrice || 0);
-
-    saveData();
-
-    displayProducts();
-
-    closeEditProduct();
-
-    alert("✅ Product Updated");
-}
-
-</script>
-
-</body>
-</html>
+<textarea
+    id="narration"
+    placeholder="Enter narration here...">
+</textarea>
