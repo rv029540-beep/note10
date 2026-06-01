@@ -798,51 +798,68 @@ document.getElementById("excelFile")
         let excelData =
         XLSX.utils.sheet_to_json(sheet);
 
-        excelData.forEach(row=>{
+       excelData.forEach(row => {
 
-            products.push({
+    let productName =
+        row.Product ||
+        row.product ||
+        row.Particulars ||
+        row.Item ||
+        row["Item Name"] ||
+        "No Name";
 
-                Product:
-                row.Product ||
-                row.product ||
-                "No Name",
+    let price = Number(
+        row.Price ||
+        row.Rate ||
+        0
+    );
 
-                Price:Number(row.Price || 0),
+    let qty = Number(
+        row.Stock ||
+        row.Quantity ||
+        0
+    );
 
-                Quantity:Number(
-                    row.Stock ||
-                    row.Quantity ||
-                    0
-                ),
+    let existingProduct = products.find(
+        p => p.Product.toLowerCase() ===
+        productName.toLowerCase()
+    );
 
-                History:[
-                    {
-                        type:"Received",
+    if(existingProduct){
 
-                        qty:Number(
-                            row.Stock ||
-                            row.Quantity ||
-                            0
-                        ),
+        existingProduct.Price = price;
+        existingProduct.Quantity = qty;
 
-                        narration:"Excel Import",
-
-                        date:new Date().toLocaleString()
-                    }
-                ]
-            });
+        existingProduct.History.push({
+            type:"Received",
+            qty:qty,
+            narration:"Excel Update",
+            date:new Date().toLocaleString()
         });
 
-        saveData();
+    }else{
 
-        displayProducts();
+        products.push({
 
-        alert("Excel Imported Successfully");
-    };
+            Product: productName,
+            Price: price,
+            Quantity: qty,
 
-    reader.readAsArrayBuffer(file);
+            History:[
+                {
+                    type:"Received",
+                    qty: qty,
+                    narration:"Excel Import",
+                    date:new Date().toLocaleString()
+                }
+            ]
+        });
+    }
 });
 
+saveData();
+displayProducts();
+alert("Excel Imported Successfully");
 function downloadExcel(){
 
     let exportData = products.map(p=>({
